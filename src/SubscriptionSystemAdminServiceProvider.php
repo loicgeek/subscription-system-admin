@@ -10,11 +10,11 @@ use Filament\Support\Facades\FilamentAsset;
 use Filament\Support\Facades\FilamentIcon;
 use Illuminate\Filesystem\Filesystem;
 use Livewire\Features\SupportTesting\Testable;
+use NtechServices\SubscriptionSystemAdmin\Commands\SubscriptionSystemAdminCommand;
+use NtechServices\SubscriptionSystemAdmin\Testing\TestsSubscriptionSystemAdmin;
 use Spatie\LaravelPackageTools\Commands\InstallCommand;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
-use NtechServices\SubscriptionSystemAdmin\Commands\SubscriptionSystemAdminCommand;
-use NtechServices\SubscriptionSystemAdmin\Testing\TestsSubscriptionSystemAdmin;
 
 class SubscriptionSystemAdminServiceProvider extends PackageServiceProvider
 {

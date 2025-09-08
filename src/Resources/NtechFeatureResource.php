@@ -2,38 +2,32 @@
 
 namespace NtechServices\SubscriptionSystemAdmin\Resources;
 
-use NtechServices\SubscriptionSystemAdmin\Resources\NtechFeatureResource\Pages;
-use NtechServices\SubscriptionSystemAdmin\Resources\NtechFeatureResource\RelationManagers;
-
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
-use NtechServices\SubscriptionSystem\Enums\BillingCycle as NtechBillingCycle;
 use NtechServices\SubscriptionSystem\Models\Feature as NtechFeature;
-use NtechServices\SubscriptionSystem\Models\Plan as NtechPlan;
-use NtechServices\SubscriptionSystem\Models\Coupon as NtechCoupon;
+use NtechServices\SubscriptionSystemAdmin\Resources\NtechFeatureResource\Pages;
 
 class NtechFeatureResource extends Resource
 {
     protected static ?string $model = NtechFeature::class;
-    protected static ?string $table = "ntech_features";
+
+    protected static ?string $table = 'ntech_features';
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
-    protected static ?string $navigationGroup = 'Ntech';
 
+    protected static ?string $navigationGroup = 'Ntech';
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
                 Forms\Components\TextInput::make('name')
-                ->required(),
+                    ->required(),
                 Forms\Components\TextInput::make('description')
-                ->required(),
+                    ->required(),
             ]);
     }
 
@@ -42,9 +36,9 @@ class NtechFeatureResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('name')
-                ->searchable(),
-                Tables\Columns\TextColumn::make('description')
-          
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('description'),
+
             ])
             ->filters([
                 //

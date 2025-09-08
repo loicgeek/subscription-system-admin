@@ -1,14 +1,12 @@
-<?php 
-
-
+<?php
 
 namespace NtechServices\SubscriptionSystemAdmin\Resources\NtechPlanResource\RelationManagers;
 
 use Filament\Forms;
-use Filament\Tables;
 use Filament\Forms\Form;
-use Filament\Tables\Table;
 use Filament\Resources\RelationManagers\RelationManager;
+use Filament\Tables;
+use Filament\Tables\Table;
 
 class FeatureValuesRelationManager extends RelationManager
 {

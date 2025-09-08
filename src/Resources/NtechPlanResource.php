@@ -2,22 +2,22 @@
 
 namespace NtechServices\SubscriptionSystemAdmin\Resources;
 
-use NtechServices\SubscriptionSystemAdmin\Resources\NtechPlanResource\Pages;
-use NtechServices\SubscriptionSystemAdmin\Resources\NtechPlanResource\RelationManagers;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-
 use NtechServices\SubscriptionSystem\Enums\BillingCycle as NtechBillingCycle;
 use NtechServices\SubscriptionSystem\Models\Plan as NtechPlan;
+use NtechServices\SubscriptionSystemAdmin\Resources\NtechPlanResource\Pages;
+use NtechServices\SubscriptionSystemAdmin\Resources\NtechPlanResource\RelationManagers;
 
 class NtechPlanResource extends Resource
 {
     protected static ?string $model = NtechPlan::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+
     protected static ?string $navigationGroup = 'Ntech';
 
     public static function form(Form $form): Form
@@ -31,7 +31,7 @@ class NtechPlanResource extends Resource
                             ->maxLength(255),
                         Forms\Components\TextInput::make('description')
                             ->maxLength(255),
-                       
+
                         Forms\Components\TextInput::make('trial_value')
                             ->numeric()
                             ->required(),
@@ -48,71 +48,71 @@ class NtechPlanResource extends Resource
 
                 Forms\Components\Section::make('Features')
                     ->schema([
-                        
+
                         Forms\Components\Repeater::make('features')
-                      
-                        ->schema([
-                            Forms\Components\Select::make('id')
-                                ->label('Feature')
-                                ->options(function () {
-                                    $featureClass =\NtechServices\SubscriptionSystem\Models\Feature::class;
-                                    return $featureClass::pluck('name', 'id')->toArray();
-                                })
-                                ->disableOptionWhen(function ($value, $state, $get) {
-                                    // Prevent selecting the same feature multiple times
-                                    return collect($get('../../features'))
-                                        ->reject(fn ($item) => $item === $state)
-                                        ->pluck('id')
-                                        ->contains($value);
-                                })
-                                ->required()
-                                ->searchable()
-                                ->preload(),
-                            Forms\Components\TextInput::make('value')
-                                ->label('Value')
-                                ->required(),
-                            Forms\Components\Toggle::make('is_soft_limit')
-                                ->label('Soft Limit')
-                                ->columnSpan(2)
-                                ->default(false)
-                                ->live(), // or ->reactive() for older versions
-                            
-                            Forms\Components\TextInput::make('overage_price')
-                                ->label('Price per additional item')
-                                ->numeric()
-                                ->step(0.0001)
-                                ->required()
-                                ->hidden(fn ($get) => !$get('is_soft_limit'))
-                                ->prefix(fn ($get) => match($get('overage_currency')) {
-                                    'USD' => '$',
-                                    'EUR' => '€',
-                                    'GBP' => '£',
-                                    'CAD' => 'C$',
-                                    default => '',
-                                }),
-                            
-                            Forms\Components\Select::make('overage_currency')
-                                ->label('Currency')
-                                ->hidden(fn ($get) => !$get('is_soft_limit'))
-                                ->options([
-                                    'USD' => 'USD ($)',
-                                    'EUR' => 'EUR (€)',
-                                    'GBP' => 'GBP (£)',
-                                    'CAD' => 'CAD (C$)',
-                                ])
-                                ->required()
-                                ->searchable(),
-                           
-                        ])
-                        ->columns(2)
-                        ->collapsible()
-                        ->reorderable()
-                        ->itemLabel(fn (array $state): ?string =>
-                            isset($state['id'])
-                                ? \NtechServices\SubscriptionSystem\Models\Feature::class::find($state['id'])?->name
-                                : 'New Feature'
-                        )
-                        ->addActionLabel('Add Feature')
+                            ->schema([
+                                Forms\Components\Select::make('id')
+                                    ->label('Feature')
+                                    ->options(function () {
+                                        $featureClass = \NtechServices\SubscriptionSystem\Models\Feature::class;
+
+                                        return $featureClass::pluck('name', 'id')->toArray();
+                                    })
+                                    ->disableOptionWhen(function ($value, $state, $get) {
+                                        // Prevent selecting the same feature multiple times
+                                        return collect($get('../../features'))
+                                            ->reject(fn ($item) => $item === $state)
+                                            ->pluck('id')
+                                            ->contains($value);
+                                    })
+                                    ->required()
+                                    ->searchable()
+                                    ->preload(),
+                                Forms\Components\TextInput::make('value')
+                                    ->label('Value')
+                                    ->required(),
+                                Forms\Components\Toggle::make('is_soft_limit')
+                                    ->label('Soft Limit')
+                                    ->columnSpan(2)
+                                    ->default(false)
+                                    ->live(), // or ->reactive() for older versions
+
+                                Forms\Components\TextInput::make('overage_price')
+                                    ->label('Price per additional item')
+                                    ->numeric()
+                                    ->step(0.0001)
+                                    ->required()
+                                    ->hidden(fn ($get) => ! $get('is_soft_limit'))
+                                    ->prefix(fn ($get) => match ($get('overage_currency')) {
+                                        'USD' => '$',
+                                        'EUR' => '€',
+                                        'GBP' => '£',
+                                        'CAD' => 'C$',
+                                        default => '',
+                                    }),
+
+                                Forms\Components\Select::make('overage_currency')
+                                    ->label('Currency')
+                                    ->hidden(fn ($get) => ! $get('is_soft_limit'))
+                                    ->options([
+                                        'USD' => 'USD ($)',
+                                        'EUR' => 'EUR (€)',
+                                        'GBP' => 'GBP (£)',
+                                        'CAD' => 'CAD (C$)',
+                                    ])
+                                    ->required()
+                                    ->searchable(),
+
+                            ])
+                            ->columns(2)
+                            ->collapsible()
+                            ->reorderable()
+                            ->itemLabel(
+                                fn (array $state): ?string => isset($state['id'])
+                                    ? \NtechServices\SubscriptionSystem\Models\Feature::class::find($state['id'])?->name
+                                    : 'New Feature'
+                            )
+                            ->addActionLabel('Add Feature'),
                     ])
                     ->collapsible(),
 
@@ -139,7 +139,7 @@ class NtechPlanResource extends Resource
                                             ->numeric()
                                             ->step(0.01)
                                             ->required()
-                                            ->prefix(fn ($get) => match($get('currency')) {
+                                            ->prefix(fn ($get) => match ($get('currency')) {
                                                 'USD' => '$',
                                                 'EUR' => '€',
                                                 'GBP' => '£',
@@ -168,7 +168,8 @@ class NtechPlanResource extends Resource
                                                 Forms\Components\Select::make('feature_id')
                                                     ->label('Feature')
                                                     ->options(function () {
-                                                        $featureClass =\NtechServices\SubscriptionSystem\Models\Feature::class;
+                                                        $featureClass = \NtechServices\SubscriptionSystem\Models\Feature::class;
+
                                                         return $featureClass::pluck('name', 'id')->toArray();
                                                     })
                                                     ->disableOptionWhen(function ($value, $state, $get) {
@@ -181,34 +182,34 @@ class NtechPlanResource extends Resource
                                                     ->required()
                                                     ->searchable()
                                                     ->preload(),
-                                                    
+
                                                 Forms\Components\TextInput::make('value')
                                                     ->label('Override Value')
                                                     ->required()
                                                     ->helperText('This value will override the default plan feature value for this specific price.'),
-                                                    
+
                                                 Forms\Components\Toggle::make('is_soft_limit')
                                                     ->label('Soft Limit')
                                                     ->default(false)
                                                     ->live()
                                                     ->columnSpanFull(),
-                                                
+
                                                 Forms\Components\TextInput::make('overage_price')
                                                     ->label('Overage Price')
                                                     ->numeric()
                                                     ->step(0.0001)
-                                                    ->hidden(fn ($get) => !$get('is_soft_limit'))
-                                                    ->prefix(fn ($get) => match($get('overage_currency')) {
+                                                    ->hidden(fn ($get) => ! $get('is_soft_limit'))
+                                                    ->prefix(fn ($get) => match ($get('overage_currency')) {
                                                         'USD' => '$',
                                                         'EUR' => '€',
                                                         'GBP' => '£',
                                                         'CAD' => 'C$',
                                                         default => '',
                                                     }),
-                                                
+
                                                 Forms\Components\Select::make('overage_currency')
                                                     ->label('Overage Currency')
-                                                    ->hidden(fn ($get) => !$get('is_soft_limit'))
+                                                    ->hidden(fn ($get) => ! $get('is_soft_limit'))
                                                     ->options([
                                                         'USD' => 'USD ($)',
                                                         'EUR' => 'EUR (€)',
@@ -220,20 +221,20 @@ class NtechPlanResource extends Resource
                                             ->columns(2)
                                             ->collapsible()
                                             ->collapsed()
-                                            ->itemLabel(function($state){
-                                                    if (!isset($state['feature_id'])) {
+                                            ->itemLabel(function ($state) {
+                                                if (! isset($state['feature_id'])) {
                                                     return 'New Override';
                                                 }
-                                                
+
                                                 $featureClass = \NtechServices\SubscriptionSystem\Models\Feature::class;
                                                 $featureName = $featureClass::find($state['feature_id'])?->name;
                                                 $value = $state['value'] ?? '';
-                                                
+
                                                 return $featureName ? "{$featureName}: {$value}" : 'New Override';
                                             })
-                                           
+
                                             ->addActionLabel('Add Feature Override')
-                                            ->reorderable(false)
+                                            ->reorderable(false),
                                     ])
                                     ->collapsible()
                                     ->collapsed()
@@ -241,13 +242,13 @@ class NtechPlanResource extends Resource
                             ])
                             ->collapsible()
                             ->itemLabel(function (array $state): ?string {
-                                if (!isset($state['currency'], $state['price'])) {
+                                if (! isset($state['currency'], $state['price'])) {
                                     return 'New Price';
                                 }
-                                
+
                                 $overrideCount = count($state['planPriceFeatureOverrides'] ?? []);
                                 $overrideText = $overrideCount > 0 ? " ({$overrideCount} overrides)" : '';
-                                
+
                                 return "{$state['currency']} {$state['price']}{$overrideText}";
                             })
                             ->addActionLabel('Add Price')

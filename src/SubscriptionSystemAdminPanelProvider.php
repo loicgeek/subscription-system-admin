@@ -1,6 +1,7 @@
 <?php
 
 namespace NtechServices\SubscriptionSystemAdmin;
+
 use Filament\Panel;
 use Filament\PanelProvider;
 

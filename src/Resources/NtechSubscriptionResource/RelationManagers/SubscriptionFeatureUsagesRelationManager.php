@@ -2,29 +2,27 @@
 
 namespace NtechServices\SubscriptionSystemAdmin\Resources\NtechSubscriptionResource\RelationManagers;
 
+use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Filament\Resources\RelationManagers\RelationManager;
 use Illuminate\Database\Eloquent\Model;
-use NtechServices\SubscriptionSystem\Services\FeatureLimitationService;
 
 class SubscriptionFeatureUsagesRelationManager extends RelationManager
 {
     protected static string $relationship = 'featureUsages'; // Ensure this exists on the Subscription model
 
-   
     public function table(Table $table): Table
     {
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('id')->label('ID')->sortable(),
-                
+
                 Tables\Columns\TextColumn::make('feature.name')
                     ->label('Feature')
                     ->default('—')
                     ->searchable()
                     ->sortable(),
-                    
+
                 Tables\Columns\TextColumn::make('feature.description')
                     ->label('Description')
                     ->default('—')
@@ -34,30 +32,33 @@ class SubscriptionFeatureUsagesRelationManager extends RelationManager
                         if (strlen($state) <= 50) {
                             return null;
                         }
+
                         return $state;
                     }),
-                
+
                 Tables\Columns\TextColumn::make('used')
                     ->label('Used')
                     ->sortable()
                     ->formatStateUsing(fn ($state) => number_format($state)),
-                    
+
                 Tables\Columns\TextColumn::make('limit')
                     ->label('Limit')
                     ->state(function (Model $record): string {
                         $limit = $record->limit;
-                        
+
                         if (in_array($limit, ['unlimited', '-1', -1], true)) {
                             return 'Unlimited';
-                        }   
-                        return number_format((int)$limit);
+                        }
+
+                        return number_format((int) $limit);
                     })
                     ->badge()
                     ->color(function (Model $record): string {
-                        $limit = $record->limit;                        
+                        $limit = $record->limit;
+
                         return in_array($limit, ['unlimited', '-1', -1], true) ? 'success' : 'primary';
                     }),
-                
+
                 Tables\Columns\TextColumn::make('remaining')
                     ->label('Remaining')
                     ->state(function (Model $record): string {
@@ -65,7 +66,8 @@ class SubscriptionFeatureUsagesRelationManager extends RelationManager
                         if (in_array($limit, ['unlimited', '-1', -1], true)) {
                             return 'Unlimited';
                         }
-                        $remaining = max(0, (int)$limit - $record->used);
+                        $remaining = max(0, (int) $limit - $record->used);
+
                         return number_format($remaining);
                     })
                     ->badge()
@@ -74,13 +76,18 @@ class SubscriptionFeatureUsagesRelationManager extends RelationManager
                         if (in_array($limit, ['unlimited', '-1', -1], true)) {
                             return 'success';
                         }
-                        $percentage = $limit > 0 ? ($record->used / (int)$limit) * 100 : 100;
-                        
-                        if ($percentage >= 100) return 'danger';
-                        if ($percentage >= 80) return 'warning';
+                        $percentage = $limit > 0 ? ($record->used / (int) $limit) * 100 : 100;
+
+                        if ($percentage >= 100) {
+                            return 'danger';
+                        }
+                        if ($percentage >= 80) {
+                            return 'warning';
+                        }
+
                         return 'success';
                     }),
-                
+
                 Tables\Columns\TextColumn::make('usage_percentage')
                     ->label('Usage %')
                     ->state(function (Model $record): string {
@@ -88,7 +95,8 @@ class SubscriptionFeatureUsagesRelationManager extends RelationManager
                         if (in_array($limit, ['unlimited', '-1', -1], true)) {
                             return '0%';
                         }
-                        $percentage = $limit > 0 ? round(($record->used / (int)$limit) * 100, 2) : 100;
+                        $percentage = $limit > 0 ? round(($record->used / (int) $limit) * 100, 2) : 100;
+
                         return $percentage . '%';
                     })
                     ->badge()
@@ -97,33 +105,35 @@ class SubscriptionFeatureUsagesRelationManager extends RelationManager
                         if (in_array($limit, ['unlimited', '-1', -1], true)) {
                             return 'gray';
                         }
-                        $percentage = $limit > 0 ? ($record->used / (int)$limit) * 100 : 100;
-                        if ($percentage >= 100) return 'danger';
-                        if ($percentage >= 80) return 'warning';
-                        if ($percentage >= 50) return 'primary';
+                        $percentage = $limit > 0 ? ($record->used / (int) $limit) * 100 : 100;
+                        if ($percentage >= 100) {
+                            return 'danger';
+                        }
+                        if ($percentage >= 80) {
+                            return 'warning';
+                        }
+                        if ($percentage >= 50) {
+                            return 'primary';
+                        }
+
                         return 'success';
                     }),
 
-
-                    Tables\Columns\TextColumn::make('overage_count')
-                    ->label("Overage count")
+                Tables\Columns\TextColumn::make('overage_count')
+                    ->label('Overage count')
                     ->badge()
                     ->color(function (Model $record): string {
                         return $record->overage_count > 0 ? 'danger' : 'success';
-                    })
-                    ,
-                
-               
-                    Tables\Columns\TextColumn::make('period_start')
-                    ->label("Period start")
-                  //  ->dateTime()
-                   ,
-                    Tables\Columns\TextColumn::make('period_end')
-                    ->label("Period end"),
-                  //  ->dateTime()
-                    
-              
-                    
+                    }),
+
+                Tables\Columns\TextColumn::make('period_start')
+                    ->label('Period start')
+                //  ->dateTime()
+                ,
+                Tables\Columns\TextColumn::make('period_end')
+                    ->label('Period end'),
+                //  ->dateTime()
+
             ])
             ->defaultSort('feature.name')
             ->filters([
@@ -135,7 +145,7 @@ class SubscriptionFeatureUsagesRelationManager extends RelationManager
                         return $query;
                     })
                     ->toggle(),
-                    
+
                 Tables\Filters\Filter::make('unlimited')
                     ->label('Unlimited Features')
                     ->query(function ($query) {

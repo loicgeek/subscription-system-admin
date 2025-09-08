@@ -2,24 +2,23 @@
 
 namespace NtechServices\SubscriptionSystemAdmin\Resources;
 
-use NtechServices\SubscriptionSystemAdmin\Resources\NtechSubscriptionResource\Pages;
-use NtechServices\SubscriptionSystemAdmin\Resources\NtechSubscriptionResource\RelationManagers\SubscriptionFeatureUsagesRelationManager;
-use NtechServices\SubscriptionSystemAdmin\Resources\NtechSubscriptionResource\RelationManagers\SubscriptionHistoriesRelationManager;
-use NtechServices\SubscriptionSystemAdmin\Resources\NtechSubscriptionResource\RelationManagers\SubscriptionPaymentsRelationManager;
-use NtechServices\SubscriptionSystem\Models\Subscription as NtechSubscription;
-use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
+use NtechServices\SubscriptionSystem\Models\Subscription as NtechSubscription;
+use NtechServices\SubscriptionSystemAdmin\Resources\NtechSubscriptionResource\Pages;
+use NtechServices\SubscriptionSystemAdmin\Resources\NtechSubscriptionResource\RelationManagers\SubscriptionFeatureUsagesRelationManager;
+use NtechServices\SubscriptionSystemAdmin\Resources\NtechSubscriptionResource\RelationManagers\SubscriptionHistoriesRelationManager;
+use NtechServices\SubscriptionSystemAdmin\Resources\NtechSubscriptionResource\RelationManagers\SubscriptionPaymentsRelationManager;
 
 class NtechSubscriptionResource extends Resource
 {
     protected static ?string $model = NtechSubscription::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+
     protected static ?string $navigationGroup = 'Ntech';
 
     public static function form(Form $form): Form
@@ -32,7 +31,7 @@ class NtechSubscriptionResource extends Resource
 
     public static function table(Table $table): Table
     {
-          return $table->columns([
+        return $table->columns([
             Tables\Columns\TextColumn::make('id')->sortable(),
             Tables\Columns\TextColumn::make('subscribable.name')->label('Project'),
             Tables\Columns\TextColumn::make('plan.name')->label('Plan'),
@@ -64,10 +63,10 @@ class NtechSubscriptionResource extends Resource
         return [
             SubscriptionFeatureUsagesRelationManager::class,
             SubscriptionHistoriesRelationManager::class,
-           // SubscriptionPaymentsRelationManager::class,
-          //  RelationManagers\HistoriesRelationManager::class,
-           // RelationManagers\UsagesRelationManager::class,
-           // RelationManagers\SubscribableRelationManager::class,
+            // SubscriptionPaymentsRelationManager::class,
+            //  RelationManagers\HistoriesRelationManager::class,
+            // RelationManagers\UsagesRelationManager::class,
+            // RelationManagers\SubscribableRelationManager::class,
         ];
     }
 

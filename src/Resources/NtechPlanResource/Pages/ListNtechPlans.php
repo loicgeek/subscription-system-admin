@@ -2,9 +2,9 @@
 
 namespace NtechServices\SubscriptionSystemAdmin\Resources\NtechPlanResource\Pages;
 
-use NtechServices\SubscriptionSystemAdmin\Resources\NtechPlanResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
+use NtechServices\SubscriptionSystemAdmin\Resources\NtechPlanResource;
 
 class ListNtechPlans extends ListRecords
 {

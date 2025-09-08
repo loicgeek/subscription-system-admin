@@ -3,7 +3,6 @@
 namespace NtechServices\SubscriptionSystemAdmin\Resources\ProjectResource\Widgets;
 
 use App\Models\Project;
-use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Filament\Widgets\TableWidget as BaseWidget;
@@ -25,12 +24,11 @@ class LatestProjects extends BaseWidget
                     ->counts('users')
                     ->label('Team Members'),
                 TextColumn::make('active')
-                    ->label('Active')
-,
+                    ->label('Active'),
                 TextColumn::make('created_at')
-                    ->dateTime()
+                    ->dateTime(),
             ])
-            ->defaultSort('created_at', 'desc') ->searchable(false)  // disables search input
+            ->defaultSort('created_at', 'desc')->searchable(false)  // disables search input
             ->paginated(false);  //
     }
 }
