@@ -3,6 +3,11 @@
 namespace NtechServices\SubscriptionSystemAdmin;
 use Filament\Panel;
 use Filament\PanelProvider;
+use NtechServices\SubscriptionSystemAdmin\Resources\NtechPlanResource;
+use NtechServices\SubscriptionSystemAdmin\Resources\NtechSubscriptionResource;
+use NtechServices\SubscriptionSystemAdmin\Resources\NtechFeatureResource;
+use NtechServices\SubscriptionSystemAdmin\Resources\NtechCouponResource;
+use NtechServices\SubscriptionSystemAdmin\Resources\NtechSubscriptionFeatureUsageResource;
 
 class SubscriptionSystemAdminPanelProvider extends PanelProvider
 {
@@ -12,7 +17,11 @@ class SubscriptionSystemAdminPanelProvider extends PanelProvider
             ->id('subscription-system-admin')
             ->path('subscription-system-admin')
             ->resources([
-                // ...
+                NtechPlanResource::class,
+                NtechFeatureResource::class,
+                NtechCouponResource::class,
+                NtechSubscriptionFeatureUsageResource::class,
+                NtechSubscriptionResource::class,
             ])
             ->pages([
                 // ...
