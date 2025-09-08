@@ -1,15 +1,15 @@
 <?php
 
-namespace VendorName\Skeleton;
+namespace NtechServices\SubscriptionSystemAdmin\Resources;
 
 use Filament\Contracts\Plugin;
 use Filament\Panel;
 
-class SkeletonPlugin implements Plugin
+class SubscriptionSystemAdminPlugin implements Plugin
 {
     public function getId(): string
     {
-        return 'skeleton';
+        return 'subscription-system-admin';
     }
 
     public function register(Panel $panel): void

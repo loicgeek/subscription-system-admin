@@ -1,12 +1,12 @@
 <?php
 
-namespace VendorName\Skeleton\Commands;
+namespace NtechServices\SubscriptionSystemAdmin\Resources\Commands;
 
 use Illuminate\Console\Command;
 
-class SkeletonCommand extends Command
+class SubscriptionSystemAdminCommand extends Command
 {
-    public $signature = 'skeleton';
+    public $signature = 'subscription-system-admin';
 
     public $description = 'My command';
 
