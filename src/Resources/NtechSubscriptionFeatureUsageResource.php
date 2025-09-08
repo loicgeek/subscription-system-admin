@@ -2,28 +2,22 @@
 
 namespace NtechServices\SubscriptionSystemAdmin\Resources;
 
-use NtechServices\SubscriptionSystemAdmin\Resources\NtechSubscriptionFeatureUsageResource\Pages;
-use NtechServices\SubscriptionSystemAdmin\Resources\NtechSubscriptionFeatureUsageResource\RelationManagers;
-use Carbon\Carbon;
-use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 use NtechServices\SubscriptionSystem\Models\SubscriptionFeatureUsage as NtechSubscriptionFeatureUsage;
-use NtechServices\SubscriptionSystem\Services\FeatureLimitationService;
+use NtechServices\SubscriptionSystemAdmin\Resources\NtechSubscriptionFeatureUsageResource\Pages;
 
 class NtechSubscriptionFeatureUsageResource extends Resource
 {
     protected static ?string $model = NtechSubscriptionFeatureUsage::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
-    protected static ?string $navigationGroup = 'Ntech';
 
+    protected static ?string $navigationGroup = 'Ntech';
 
     public static function form(Form $form): Form
     {
@@ -42,7 +36,7 @@ class NtechSubscriptionFeatureUsageResource extends Resource
                 TextColumn::make('feature.name')->label('Feature'),
                 TextColumn::make('used')->label('Used'),
                 TextColumn::make('limit')->label('Limit'),
-              
+
                 TextColumn::make('period_start')->label('Period Start')->dateTime(),
                 TextColumn::make('period_end')->label('Period End')->dateTime(),
                 TextColumn::make('created_at')->label('Created At')->dateTime(),

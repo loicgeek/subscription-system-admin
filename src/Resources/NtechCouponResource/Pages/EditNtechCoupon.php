@@ -2,9 +2,9 @@
 
 namespace NtechServices\SubscriptionSystemAdmin\Resources\NtechCouponResource\Pages;
 
-use NtechServices\SubscriptionSystemAdmin\Resources\NtechCouponResource;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
+use NtechServices\SubscriptionSystemAdmin\Resources\NtechCouponResource;
 
 class EditNtechCoupon extends EditRecord
 {

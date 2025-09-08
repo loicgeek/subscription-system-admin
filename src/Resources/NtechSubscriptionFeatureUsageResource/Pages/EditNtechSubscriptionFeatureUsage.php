@@ -2,9 +2,9 @@
 
 namespace NtechServices\SubscriptionSystemAdmin\Resources\NtechSubscriptionFeatureUsageResource\Pages;
 
-use NtechServices\SubscriptionSystemAdmin\Resources\NtechSubscriptionFeatureUsageResource;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
+use NtechServices\SubscriptionSystemAdmin\Resources\NtechSubscriptionFeatureUsageResource;
 
 class EditNtechSubscriptionFeatureUsage extends EditRecord
 {

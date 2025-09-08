@@ -2,9 +2,8 @@
 
 namespace NtechServices\SubscriptionSystemAdmin\Resources\NtechSubscriptionResource\Pages;
 
-use NtechServices\SubscriptionSystemAdmin\Resources\NtechSubscriptionResource;
-use Filament\Actions;
 use Filament\Resources\Pages\CreateRecord;
+use NtechServices\SubscriptionSystemAdmin\Resources\NtechSubscriptionResource;
 
 class CreateNtechSubscription extends CreateRecord
 {

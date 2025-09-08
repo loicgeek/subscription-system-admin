@@ -2,9 +2,9 @@
 
 namespace NtechServices\SubscriptionSystemAdmin\Resources\NtechCouponResource\Pages;
 
-use NtechServices\SubscriptionSystemAdmin\Resources\NtechCouponResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
+use NtechServices\SubscriptionSystemAdmin\Resources\NtechCouponResource;
 
 class ListNtechCoupons extends ListRecords
 {

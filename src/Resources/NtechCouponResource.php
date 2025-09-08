@@ -2,27 +2,20 @@
 
 namespace NtechServices\SubscriptionSystemAdmin\Resources;
 
-use NtechServices\SubscriptionSystemAdmin\Resources\NtechCouponResource\Pages;
-use NtechServices\SubscriptionSystemAdmin\Resources\NtechCouponResource\RelationManagers;
-
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
-
-use NtechServices\SubscriptionSystem\Enums\BillingCycle as NtechBillingCycle;
-use NtechServices\SubscriptionSystem\Models\Feature as NtechFeature;
-use NtechServices\SubscriptionSystem\Models\Plan as NtechPlan;
 use NtechServices\SubscriptionSystem\Models\Coupon as NtechCoupon;
+use NtechServices\SubscriptionSystemAdmin\Resources\NtechCouponResource\Pages;
 
 class NtechCouponResource extends Resource
 {
     protected static ?string $model = NtechCoupon::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+
     protected static ?string $navigationGroup = 'Ntech';
 
     public static function form(Form $form): Form
@@ -46,7 +39,6 @@ class NtechCouponResource extends Resource
             Tables\Columns\TextColumn::make('expires_at')->dateTime(),
         ]);
     }
-
 
     public static function getRelations(): array
     {

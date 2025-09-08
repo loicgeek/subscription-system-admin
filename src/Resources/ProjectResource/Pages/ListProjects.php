@@ -2,7 +2,6 @@
 
 namespace NtechServices\SubscriptionSystemAdmin\Resources\ProjectResource\Pages;
 
-use NtechServices\SubscriptionSystemAdmin\ResourcesProjectResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
 
