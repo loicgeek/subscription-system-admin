@@ -11,7 +11,6 @@ use Filament\Tables;
 use Filament\Tables\Table;
 
 use NtechServices\SubscriptionSystem\Enums\BillingCycle as NtechBillingCycle;
-use NtechServices\SubscriptionSystem\Helpers\ConfigHelper;
 use NtechServices\SubscriptionSystem\Models\Plan as NtechPlan;
 
 class NtechPlanResource extends Resource
@@ -56,7 +55,7 @@ class NtechPlanResource extends Resource
                             Forms\Components\Select::make('id')
                                 ->label('Feature')
                                 ->options(function () {
-                                    $featureClass = ConfigHelper::getConfigClass('feature', \NtechServices\SubscriptionSystem\Models\Feature::class);
+                                    $featureClass =\NtechServices\SubscriptionSystem\Models\Feature::class;
                                     return $featureClass::pluck('name', 'id')->toArray();
                                 })
                                 ->disableOptionWhen(function ($value, $state, $get) {
@@ -110,7 +109,7 @@ class NtechPlanResource extends Resource
                         ->reorderable()
                         ->itemLabel(fn (array $state): ?string =>
                             isset($state['id'])
-                                ? ConfigHelper::getConfigClass('feature', \NtechServices\SubscriptionSystem\Models\Feature::class)::find($state['id'])?->name
+                                ? \NtechServices\SubscriptionSystem\Models\Feature::class::find($state['id'])?->name
                                 : 'New Feature'
                         )
                         ->addActionLabel('Add Feature')
@@ -169,7 +168,7 @@ class NtechPlanResource extends Resource
                                                 Forms\Components\Select::make('feature_id')
                                                     ->label('Feature')
                                                     ->options(function () {
-                                                        $featureClass = ConfigHelper::getConfigClass('feature', \NtechServices\SubscriptionSystem\Models\Feature::class);
+                                                        $featureClass =\NtechServices\SubscriptionSystem\Models\Feature::class;
                                                         return $featureClass::pluck('name', 'id')->toArray();
                                                     })
                                                     ->disableOptionWhen(function ($value, $state, $get) {
@@ -226,7 +225,7 @@ class NtechPlanResource extends Resource
                                                     return 'New Override';
                                                 }
                                                 
-                                                $featureClass = ConfigHelper::getConfigClass('feature', \NtechServices\SubscriptionSystem\Models\Feature::class);
+                                                $featureClass = \NtechServices\SubscriptionSystem\Models\Feature::class;
                                                 $featureName = $featureClass::find($state['feature_id'])?->name;
                                                 $value = $state['value'] ?? '';
                                                 

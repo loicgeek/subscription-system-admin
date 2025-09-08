@@ -1,6 +1,6 @@
 <?php
 
-namespace NtechServices\SubscriptionSystemAdmin\Resources;
+namespace NtechServices\SubscriptionSystemAdmin;
 
 use Filament\Contracts\Plugin;
 use Filament\Panel;

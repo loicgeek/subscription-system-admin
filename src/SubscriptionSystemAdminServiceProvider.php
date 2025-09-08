@@ -1,6 +1,6 @@
 <?php
 
-namespace NtechServices\SubscriptionSystemAdmin\Resources;
+namespace NtechServices\SubscriptionSystemAdmin;
 
 use Filament\Support\Assets\AlpineComponent;
 use Filament\Support\Assets\Asset;

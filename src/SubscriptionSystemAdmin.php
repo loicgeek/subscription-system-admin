@@ -1,5 +1,5 @@
 <?php
 
-namespace NtechServices\SubscriptionSystemAdmin\Resources;
+namespace NtechServices\SubscriptionSystemAdmin;
 
 class SubscriptionSystemAdmin {}

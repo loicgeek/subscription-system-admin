@@ -1,6 +1,6 @@
 <?php
 
-namespace NtechServices\SubscriptionSystemAdmin\Resources\Facades;
+namespace NtechServices\SubscriptionSystemAdmin\Facades;
 
 use Illuminate\Support\Facades\Facade;
 

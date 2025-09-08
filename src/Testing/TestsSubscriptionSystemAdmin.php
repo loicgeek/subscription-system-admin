@@ -1,6 +1,6 @@
 <?php
 
-namespace NtechServices\SubscriptionSystemAdmin\Resources\Testing;
+namespace NtechServices\SubscriptionSystemAdmin\Testing;
 
 use Livewire\Features\SupportTesting\Testable;
 

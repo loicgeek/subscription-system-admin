@@ -1,6 +1,6 @@
 <?php
 
-namespace NtechServices\SubscriptionSystemAdmin\Resources\Commands;
+namespace NtechServices\SubscriptionSystemAdmin\Commands;
 
 use Illuminate\Console\Command;
 
