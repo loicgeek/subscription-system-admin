@@ -66,8 +66,7 @@
         "laravel": {
             "providers": [
                 "NtechServices\\SubscriptionSystemAdmin\\SubscriptionSystemAdminServiceProvider",
-                "NtechServices\\SubscriptionSystemAdmin\\SubscriptionSystemAdminPanelProvider",
-                "NtechServices\\SubscriptionSystem\\SubscriptionServiceProvider"
+            "NtechServices\\SubscriptionSystem\\SubscriptionServiceProvider"
             ],
             "aliases": {
                 "SubscriptionSystemAdmin": "NtechServices\\SubscriptionSystemAdmin\\Facades\\SubscriptionSystemAdmin"
