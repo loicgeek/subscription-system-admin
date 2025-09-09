@@ -53,14 +53,16 @@ class NtechPlanResource extends Resource
                 Forms\Components\TextInput::make('name')
                     ->label('Plan Name')
                     ->required()
+                    ->live()
                     ->maxLength(255)
                     ->placeholder('Basic Plan')
-                    ->columnSpan(1)
-                    ->afterStateUpdated(fn ($state, Set $set) => 
-                    $set('slug', \Illuminate\Support\Str::slug($state))
-                ),
-                Forms\Components\TextInput::make('slug')
-                ->hidden(),
+                    ->afterStateUpdated(function ($state, callable $set) {
+                        $set('slug', \Illuminate\Support\Str::slug($state));
+                    })
+                    ->columnSpan(1),
+                    Forms\Components\TextInput::make('slug')
+                    ->label('Slug')
+                    ->required(),
                 Forms\Components\Textarea::make('description')
                     ->label('Description')
                     ->rows(2)
@@ -73,18 +75,18 @@ class NtechPlanResource extends Resource
                     ->default(0)
                     ->placeholder('0')
                     ->columnSpan(1),
+               
                 Forms\Components\Toggle::make('popular')
                     ->label('Mark as Popular')
                     ->default(false)
                     ->helperText('This plan will be highlighted in pricing tables')
-                    ->columnSpan(1),
+                    ->columnSpan(2),
 
                 // Trial Configuration
                 Forms\Components\TextInput::make('trial_value')
                     ->label('Trial Duration')
                     ->numeric()
-                    ->required()
-                    ->default(14)
+                    ->default(0)
                     ->columnSpan(1),
                 Forms\Components\Select::make('trial_cycle')
                     ->label('Trial Cycle')
@@ -99,40 +101,48 @@ class NtechPlanResource extends Resource
                     ->columnSpan(1),
 
                 // Features
+                // Features - Manual handling (this works reliably)
                 Forms\Components\Repeater::make('features')
                     ->label('Plan Features')
+                    // NO ->relationship() here
                     ->schema([
-                        Forms\Components\Select::make('id')
-                            ->label('Feature')
-                            ->options(function () {
-                                $featureClass = ConfigHelper::getConfigClass('feature', \NtechServices\SubscriptionSystem\Models\Feature::class);
-                                return $featureClass::pluck('name', 'id')->toArray();
-                            })
-                            ->disableOptionWhen(function ($value, $state, $get) {
-                                return collect($get('../../features'))
-                                    ->reject(fn ($item) => $item === $state)
-                                    ->pluck('id')
-                                    ->contains($value);
-                            })
-                            ->required()
-                            ->searchable()
-                            ->preload()
-                            ->columnSpan(1),
-                        Forms\Components\TextInput::make('value')
+                        Forms\Components\Select::make('feature_id')
+                        ->label('Feature')
+                        ->options(function () {
+                            $featureClass = ConfigHelper::getConfigClass('feature', \NtechServices\SubscriptionSystem\Models\Feature::class);
+                            return $featureClass::pluck('name', 'id')->toArray();
+                        })
+                        ->disableOptionWhen(function ($value, $state, $get) {
+                            $allSelectedFeatures = collect($get('../../features'))
+                                ->pluck('feature_id')
+                                ->filter(); // Remove empty values
+                                
+                            $currentSelection = $get('feature_id');
+                            
+                            // Only disable if the value is selected elsewhere (not in current field)
+                            return $allSelectedFeatures->contains($value) && $value !== $currentSelection;
+                        })
+                        ->required()
+                        ->searchable()
+                        ->preload()
+                        ->columnSpan(1),
+                            
+                        Forms\Components\TextInput::make('value') // Direct field, no pivot prefix
                             ->label('Value')
                             ->required()
                             ->placeholder('100, true, unlimited')
                             ->columnSpan(1),
-                        Forms\Components\Toggle::make('is_soft_limit')
+                            
+                        Forms\Components\Toggle::make('is_soft_limit') // Direct field, no pivot prefix
                             ->label('Soft Limit')
                             ->default(false)
                             ->live()
                             ->columnSpan(1),
-                        Forms\Components\TextInput::make('overage_price')
+                            
+                        Forms\Components\TextInput::make('overage_price') // Direct field, no pivot prefix
                             ->label('Overage Price')
                             ->numeric()
                             ->step(0.0001)
-                            ->required()
                             ->visible(fn ($get) => $get('is_soft_limit'))
                             ->prefix(fn ($get) => match($get('overage_currency')) {
                                 'USD' => '$',
@@ -142,7 +152,8 @@ class NtechPlanResource extends Resource
                                 default => '',
                             })
                             ->columnSpan(1),
-                        Forms\Components\Select::make('overage_currency')
+                            
+                        Forms\Components\Select::make('overage_currency') // Direct field, no pivot prefix
                             ->label('Overage Currency')
                             ->visible(fn ($get) => $get('is_soft_limit'))
                             ->options([
@@ -151,18 +162,29 @@ class NtechPlanResource extends Resource
                                 'GBP' => 'GBP (£)',
                                 'CAD' => 'CAD (C$)',
                             ])
-                            ->required()
                             ->searchable()
                             ->columnSpan(1),
                     ])
                     ->columns(2)
                     ->collapsible()
                     ->reorderable()
-                    ->itemLabel(fn (array $state): ?string =>
-                        isset($state['id'])
-                            ? ConfigHelper::getConfigClass('feature', \NtechServices\SubscriptionSystem\Models\Feature::class)::find($state['id'])?->name
-                            : 'New Feature'
-                    )
+                    ->itemLabel(function (array $state): ?string {
+                        if (!isset($state['feature_id'])) {
+                            return 'New Feature';
+                        }
+                        
+                        // Cache features to avoid repeated queries
+                        static $features = null;
+                        if ($features === null) {
+                            $featureClass = ConfigHelper::getConfigClass('feature', \NtechServices\SubscriptionSystem\Models\Feature::class);
+                            $features = $featureClass::pluck('name', 'id')->toArray();
+                        }
+                        
+                        $featureName = $features[$state['feature_id']] ?? 'Unknown Feature';
+                        $value = $state['value'] ?? '';
+                        
+                        return $featureName . ($value ? ": {$value}" : '');
+                    })
                     ->addActionLabel('Add Feature')
                     ->columnSpanFull(),
 
@@ -240,7 +262,7 @@ class NtechPlanResource extends Resource
                                     ->label('Soft Limit')
                                     ->default(false)
                                     ->live()
-                                    ->columnSpan(1),
+                                    ->columnSpanFull(),
                                 Forms\Components\TextInput::make('overage_price')
                                     ->label('Overage Price')
                                     ->numeric()
