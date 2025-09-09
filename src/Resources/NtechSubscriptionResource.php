@@ -442,9 +442,9 @@ class NtechSubscriptionResource extends Resource
                 ->button(),
             ])
             ->headerActions([
-                CreateAction::make()
-                    ->label('New Subscription')
-                    ->icon('heroicon-o-plus'),
+                // CreateAction::make()
+                //     ->label('New Subscription')
+                //     ->icon('heroicon-o-plus'),
             ])
             ->groupedBulkActions([
                 BulkActionGroup::make([
@@ -488,9 +488,9 @@ class NtechSubscriptionResource extends Resource
                 ]),
             ])
             ->emptyStateActions([
-                CreateAction::make()
-                    ->label('Create your first subscription')
-                    ->icon('heroicon-o-plus'),
+                // CreateAction::make()
+                //     ->label('Create your first subscription')
+                //     ->icon('heroicon-o-plus'),
             ])
             ->defaultSort('created_at', 'desc')
             ->modifyQueryUsing(fn (Builder $query) => $query->with(['subscribable', 'plan', 'planPrice', 'coupon']))
