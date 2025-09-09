@@ -68,7 +68,7 @@
             "providers": [
                 "NtechServices\\SubscriptionSystemAdmin\\SubscriptionSystemAdminServiceProvider",
                 "NtechServices\\SubscriptionSystemAdmin\\SubscriptionSystemAdminPanelProvider",
-                "NtechServices\\SubscriptionSystem\\SubscriptionServiceProvider::class"
+                "NtechServices\\SubscriptionSystem\\SubscriptionServiceProvider"
             ],
             "aliases": {
                 "SubscriptionSystemAdmin": "NtechServices\\SubscriptionSystemAdmin\\Facades\\SubscriptionSystemAdmin"
