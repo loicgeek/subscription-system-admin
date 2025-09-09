@@ -40,7 +40,7 @@ class NtechSubscriptionResource extends Resource
 
     protected static ?string $navigationLabel = 'Subscriptions';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Ntech';
+    protected static string|UnitEnum|null $navigationGroup = 'Ntech-Services';
 
     protected static ?int $navigationSort = 5;
 

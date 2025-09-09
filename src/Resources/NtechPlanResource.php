@@ -38,7 +38,7 @@ class NtechPlanResource extends Resource
 
     protected static ?string $navigationLabel = 'Plans';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Ntech';
+    protected static string|UnitEnum|null $navigationGroup = 'Ntech-Services';
 
     protected static ?int $navigationSort = 3;
 

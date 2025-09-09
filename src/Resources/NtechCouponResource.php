@@ -41,7 +41,7 @@ class NtechCouponResource extends Resource
 
     protected static ?string $navigationLabel = 'Coupons';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Ntech';
+    protected static string|UnitEnum|null $navigationGroup = 'Ntech-Services';
 
     protected static ?int $navigationSort = 1;
 
