@@ -101,8 +101,8 @@ class SubscriptionSystemAdminServiceProvider extends PackageServiceProvider
     {
         return [
             // AlpineComponent::make('subscription-system-admin', __DIR__ . '/../resources/dist/components/subscription-system-admin.js'),
-            Css::make('subscription-system-admin-styles', __DIR__ . '/../resources/dist/subscription-system-admin.css'),
-            Js::make('subscription-system-admin-scripts', __DIR__ . '/../resources/dist/subscription-system-admin.js'),
+            // Css::make('subscription-system-admin-styles', __DIR__ . '/../resources/dist/subscription-system-admin.css'),
+            // Js::make('subscription-system-admin-scripts', __DIR__ . '/../resources/dist/subscription-system-admin.js'),
         ];
     }
 
@@ -112,7 +112,7 @@ class SubscriptionSystemAdminServiceProvider extends PackageServiceProvider
     protected function getCommands(): array
     {
         return [
-            SubscriptionSystemAdminCommand::class,
+            // SubscriptionSystemAdminCommand::class,
         ];
     }
 
@@ -146,7 +146,7 @@ class SubscriptionSystemAdminServiceProvider extends PackageServiceProvider
     protected function getMigrations(): array
     {
         return [
-            'create_subscription-system-admin_table',
+            // 'create_subscription-system-admin_table',
         ];
     }
 }
