@@ -23,7 +23,7 @@
         "php": "^8.1",
         "filament/filament": "^3.0",
         "spatie/laravel-package-tools": "^1.15.0",
-        "ntech-services/subscription-system": "dev-main as 1.0"
+        "ntech-services/subscription-system": "0.0.10"
     },
     "require-dev": {
         "larastan/larastan": "^2.11",
