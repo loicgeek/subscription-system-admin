@@ -17,6 +17,7 @@ use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Forms;
 use Filament\Resources\Resource;
+use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Filament\Support\Enums\Alignment;
 use Filament\Tables\Columns\IconColumn;
@@ -54,7 +55,12 @@ class NtechPlanResource extends Resource
                     ->required()
                     ->maxLength(255)
                     ->placeholder('Basic Plan')
-                    ->columnSpan(1),
+                    ->columnSpan(1)
+                    ->afterStateUpdated(fn ($state, Set $set) => 
+                    $set('slug', \Illuminate\Support\Str::slug($state))
+                ),
+                Forms\Components\TextInput::make('slug')
+                ->hidden(),
                 Forms\Components\Textarea::make('description')
                     ->label('Description')
                     ->rows(2)
