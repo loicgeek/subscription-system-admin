@@ -3,18 +3,18 @@
 namespace NtechServices\SubscriptionSystemAdmin\Resources\NtechPlanResource\RelationManagers;
 
 use Filament\Forms;
-use Filament\Forms\Form;
-use Filament\Resources\RelationManagers\RelationManager;
+use Filament\Schemas\Schema;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Filament\Resources\RelationManagers\RelationManager;
 
 class FeatureValuesRelationManager extends RelationManager
 {
     protected static string $relationship = 'features'; // related to $plan->features()
 
-    public function form(Form $form): Form
+    public function form(Schema $schema): Schema
     {
-        return $form->schema([
+        return $schema->schema([
             Forms\Components\Select::make('feature_id')
                 ->relationship('feature', 'name')
                 ->required(),

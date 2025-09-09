@@ -2,308 +2,493 @@
 
 namespace NtechServices\SubscriptionSystemAdmin\Resources;
 
-use Filament\Forms;
-use Filament\Forms\Form;
-use Filament\Resources\Resource;
-use Filament\Tables;
-use Filament\Tables\Table;
-use NtechServices\SubscriptionSystem\Enums\BillingCycle as NtechBillingCycle;
-use NtechServices\SubscriptionSystem\Models\Plan as NtechPlan;
 use NtechServices\SubscriptionSystemAdmin\Resources\NtechPlanResource\Pages;
 use NtechServices\SubscriptionSystemAdmin\Resources\NtechPlanResource\RelationManagers;
+use BackedEnum;
+use Illuminate\Database\Eloquent\Builder;
+use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
+use Filament\Actions\BulkAction;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\CreateAction;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
+use Filament\Forms;
+use Filament\Resources\Resource;
+use Filament\Schemas\Schema;
+use Filament\Support\Enums\Alignment;
+use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Filters\TernaryFilter;
+use Filament\Tables\Table;
+use UnitEnum;
+
+use NtechServices\SubscriptionSystem\Enums\BillingCycle as NtechBillingCycle;
+use NtechServices\SubscriptionSystem\Helpers\ConfigHelper;
+use NtechServices\SubscriptionSystem\Models\Plan as NtechPlan;
 
 class NtechPlanResource extends Resource
 {
     protected static ?string $model = NtechPlan::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-squares-2x2';
 
-    protected static ?string $navigationGroup = 'Ntech';
+    protected static ?string $navigationLabel = 'Plans';
 
-    public static function form(Form $form): Form
+    protected static string|UnitEnum|null $navigationGroup = 'Ntech';
+
+    protected static ?int $navigationSort = 3;
+
+    protected static ?string $recordTitleAttribute = 'name';
+
+    public static function form(Schema $schema): Schema
     {
-        return $form
+        return $schema
             ->schema([
-                Forms\Components\Section::make('Plan Details')
-                    ->schema([
-                        Forms\Components\TextInput::make('name')
-                            ->required()
-                            ->maxLength(255),
-                        Forms\Components\TextInput::make('description')
-                            ->maxLength(255),
+                // Plan Details
+                Forms\Components\TextInput::make('name')
+                    ->label('Plan Name')
+                    ->required()
+                    ->maxLength(255)
+                    ->placeholder('Basic Plan')
+                    ->columnSpan(1),
+                Forms\Components\Textarea::make('description')
+                    ->label('Description')
+                    ->rows(2)
+                    ->maxLength(500)
+                    ->placeholder('Perfect for small teams and startups')
+                    ->columnSpan(1),
+                Forms\Components\TextInput::make('order')
+                    ->label('Display Order')
+                    ->numeric()
+                    ->default(0)
+                    ->placeholder('0')
+                    ->columnSpan(1),
+                Forms\Components\Toggle::make('popular')
+                    ->label('Mark as Popular')
+                    ->default(false)
+                    ->helperText('This plan will be highlighted in pricing tables')
+                    ->columnSpan(1),
 
-                        Forms\Components\TextInput::make('trial_value')
+                // Trial Configuration
+                Forms\Components\TextInput::make('trial_value')
+                    ->label('Trial Duration')
+                    ->numeric()
+                    ->required()
+                    ->default(14)
+                    ->columnSpan(1),
+                Forms\Components\Select::make('trial_cycle')
+                    ->label('Trial Cycle')
+                    ->options([
+                        NtechBillingCycle::DAILY->value => NtechBillingCycle::DAILY->name,
+                        NtechBillingCycle::WEEKLY->value => NtechBillingCycle::WEEKLY->name,
+                        NtechBillingCycle::MONTHLY->value => NtechBillingCycle::MONTHLY->name,
+                        NtechBillingCycle::YEARLY->value => NtechBillingCycle::YEARLY->name,
+                    ])
+                    ->required()
+                    ->default(NtechBillingCycle::DAILY->value)
+                    ->columnSpan(1),
+
+                // Features
+                Forms\Components\Repeater::make('features')
+                    ->label('Plan Features')
+                    ->schema([
+                        Forms\Components\Select::make('id')
+                            ->label('Feature')
+                            ->options(function () {
+                                $featureClass = ConfigHelper::getConfigClass('feature', \NtechServices\SubscriptionSystem\Models\Feature::class);
+                                return $featureClass::pluck('name', 'id')->toArray();
+                            })
+                            ->disableOptionWhen(function ($value, $state, $get) {
+                                return collect($get('../../features'))
+                                    ->reject(fn ($item) => $item === $state)
+                                    ->pluck('id')
+                                    ->contains($value);
+                            })
+                            ->required()
+                            ->searchable()
+                            ->preload()
+                            ->columnSpan(1),
+                        Forms\Components\TextInput::make('value')
+                            ->label('Value')
+                            ->required()
+                            ->placeholder('100, true, unlimited')
+                            ->columnSpan(1),
+                        Forms\Components\Toggle::make('is_soft_limit')
+                            ->label('Soft Limit')
+                            ->default(false)
+                            ->live()
+                            ->columnSpan(1),
+                        Forms\Components\TextInput::make('overage_price')
+                            ->label('Overage Price')
                             ->numeric()
-                            ->required(),
-                        Forms\Components\Select::make('trial_cycle')
+                            ->step(0.0001)
+                            ->required()
+                            ->visible(fn ($get) => $get('is_soft_limit'))
+                            ->prefix(fn ($get) => match($get('overage_currency')) {
+                                'USD' => '$',
+                                'EUR' => '€',
+                                'GBP' => '£',
+                                'CAD' => 'C$',
+                                default => '',
+                            })
+                            ->columnSpan(1),
+                        Forms\Components\Select::make('overage_currency')
+                            ->label('Overage Currency')
+                            ->visible(fn ($get) => $get('is_soft_limit'))
+                            ->options([
+                                'USD' => 'USD ($)',
+                                'EUR' => 'EUR (€)',
+                                'GBP' => 'GBP (£)',
+                                'CAD' => 'CAD (C$)',
+                            ])
+                            ->required()
+                            ->searchable()
+                            ->columnSpan(1),
+                    ])
+                    ->columns(2)
+                    ->collapsible()
+                    ->reorderable()
+                    ->itemLabel(fn (array $state): ?string =>
+                        isset($state['id'])
+                            ? ConfigHelper::getConfigClass('feature', \NtechServices\SubscriptionSystem\Models\Feature::class)::find($state['id'])?->name
+                            : 'New Feature'
+                    )
+                    ->addActionLabel('Add Feature')
+                    ->columnSpanFull(),
+
+                // Prices
+                Forms\Components\Repeater::make('planPrices')
+                    ->label('Plan Prices')
+                    ->relationship()
+                    ->schema([
+                        Forms\Components\Select::make('currency')
+                            ->label('Currency')
+                            ->options([
+                                'USD' => 'USD ($)',
+                                'EUR' => 'EUR (€)',
+                                'GBP' => 'GBP (£)',
+                                'CAD' => 'CAD (C$)',
+                            ])
+                            ->required()
+                            ->searchable()
+                            ->columnSpan(1),
+                        Forms\Components\TextInput::make('price')
+                            ->label('Price')
+                            ->numeric()
+                            ->step(0.01)
+                            ->required()
+                            ->prefix(fn ($get) => match($get('currency')) {
+                                'USD' => '$',
+                                'EUR' => '€',
+                                'GBP' => '£',
+                                'CAD' => 'C$',
+                                default => '',
+                            })
+                            ->columnSpan(1),
+                        Forms\Components\Select::make('billing_cycle')
+                            ->label('Billing Cycle')
                             ->options([
                                 NtechBillingCycle::DAILY->value => NtechBillingCycle::DAILY->name,
                                 NtechBillingCycle::WEEKLY->value => NtechBillingCycle::WEEKLY->name,
                                 NtechBillingCycle::MONTHLY->value => NtechBillingCycle::MONTHLY->name,
                                 NtechBillingCycle::YEARLY->value => NtechBillingCycle::YEARLY->name,
                             ])
-                            ->required(),
-                    ])
-                    ->columns(2),
+                            ->required()
+                            ->columnSpan(1),
+                        Forms\Components\Toggle::make('is_active')
+                            ->label('Active')
+                            ->default(true)
+                            ->columnSpan(1),
 
-                Forms\Components\Section::make('Features')
-                    ->schema([
-
-                        Forms\Components\Repeater::make('features')
+                        // Feature Overrides
+                        Forms\Components\Repeater::make('planPriceFeatureOverrides')
+                            ->label('Feature Overrides')
+                            ->relationship()
                             ->schema([
-                                Forms\Components\Select::make('id')
+                                Forms\Components\Select::make('feature_id')
                                     ->label('Feature')
                                     ->options(function () {
-                                        $featureClass = \NtechServices\SubscriptionSystem\Models\Feature::class;
-
+                                        $featureClass = ConfigHelper::getConfigClass('feature', \NtechServices\SubscriptionSystem\Models\Feature::class);
                                         return $featureClass::pluck('name', 'id')->toArray();
                                     })
                                     ->disableOptionWhen(function ($value, $state, $get) {
-                                        // Prevent selecting the same feature multiple times
-                                        return collect($get('../../features'))
+                                        return collect($get('../../planPriceFeatureOverrides'))
                                             ->reject(fn ($item) => $item === $state)
-                                            ->pluck('id')
+                                            ->pluck('feature_id')
                                             ->contains($value);
                                     })
                                     ->required()
                                     ->searchable()
-                                    ->preload(),
+                                    ->preload()
+                                    ->columnSpan(1),
                                 Forms\Components\TextInput::make('value')
-                                    ->label('Value')
-                                    ->required(),
+                                    ->label('Override Value')
+                                    ->required()
+                                    ->helperText('This will override the plan default value')
+                                    ->columnSpan(1),
                                 Forms\Components\Toggle::make('is_soft_limit')
                                     ->label('Soft Limit')
-                                    ->columnSpan(2)
                                     ->default(false)
-                                    ->live(), // or ->reactive() for older versions
-
+                                    ->live()
+                                    ->columnSpan(1),
                                 Forms\Components\TextInput::make('overage_price')
-                                    ->label('Price per additional item')
+                                    ->label('Overage Price')
                                     ->numeric()
                                     ->step(0.0001)
-                                    ->required()
-                                    ->hidden(fn ($get) => ! $get('is_soft_limit'))
-                                    ->prefix(fn ($get) => match ($get('overage_currency')) {
+                                    ->visible(fn ($get) => $get('is_soft_limit'))
+                                    ->prefix(fn ($get) => match($get('overage_currency')) {
                                         'USD' => '$',
                                         'EUR' => '€',
                                         'GBP' => '£',
                                         'CAD' => 'C$',
                                         default => '',
-                                    }),
-
+                                    })
+                                    ->columnSpan(1),
                                 Forms\Components\Select::make('overage_currency')
-                                    ->label('Currency')
-                                    ->hidden(fn ($get) => ! $get('is_soft_limit'))
+                                    ->label('Overage Currency')
+                                    ->visible(fn ($get) => $get('is_soft_limit'))
                                     ->options([
                                         'USD' => 'USD ($)',
                                         'EUR' => 'EUR (€)',
                                         'GBP' => 'GBP (£)',
                                         'CAD' => 'CAD (C$)',
                                     ])
-                                    ->required()
-                                    ->searchable(),
-
+                                    ->searchable()
+                                    ->columnSpan(1),
                             ])
                             ->columns(2)
                             ->collapsible()
-                            ->reorderable()
-                            ->itemLabel(
-                                fn (array $state): ?string => isset($state['id'])
-                                    ? \NtechServices\SubscriptionSystem\Models\Feature::class::find($state['id'])?->name
-                                    : 'New Feature'
-                            )
-                            ->addActionLabel('Add Feature'),
-                    ])
-                    ->collapsible(),
-
-                Forms\Components\Section::make('Prices')
-                    ->schema([
-                        Forms\Components\Repeater::make('planPrices')
-                            ->relationship()
-                            ->schema([
-                                Forms\Components\Grid::make(4)
-                                    ->schema([
-                                        Forms\Components\Select::make('currency')
-                                            ->label('Currency')
-                                            ->options([
-                                                'USD' => 'USD ($)',
-                                                'EUR' => 'EUR (€)',
-                                                'GBP' => 'GBP (£)',
-                                                'CAD' => 'CAD (C$)',
-                                                // Add more currencies as needed
-                                            ])
-                                            ->required()
-                                            ->searchable(),
-                                        Forms\Components\TextInput::make('price')
-                                            ->label('Price')
-                                            ->numeric()
-                                            ->step(0.01)
-                                            ->required()
-                                            ->prefix(fn ($get) => match ($get('currency')) {
-                                                'USD' => '$',
-                                                'EUR' => '€',
-                                                'GBP' => '£',
-                                                'CAD' => 'C$',
-                                                default => '',
-                                            }),
-                                        Forms\Components\Select::make('billing_cycle')
-                                            ->label('Billing Cycle')
-                                            ->options([
-                                                NtechBillingCycle::DAILY->value => NtechBillingCycle::DAILY->name,
-                                                NtechBillingCycle::WEEKLY->value => NtechBillingCycle::WEEKLY->name,
-                                                NtechBillingCycle::MONTHLY->value => NtechBillingCycle::MONTHLY->name,
-                                                NtechBillingCycle::YEARLY->value => NtechBillingCycle::YEARLY->name,
-                                            ])
-                                            ->required(),
-                                        Forms\Components\Toggle::make('is_active')
-                                            ->label('Active')
-                                            ->default(true),
-                                    ]),
-
-                                Forms\Components\Section::make('Feature Overrides')
-                                    ->schema([
-                                        Forms\Components\Repeater::make('planPriceFeatureOverrides')
-                                            ->relationship()
-                                            ->schema([
-                                                Forms\Components\Select::make('feature_id')
-                                                    ->label('Feature')
-                                                    ->options(function () {
-                                                        $featureClass = \NtechServices\SubscriptionSystem\Models\Feature::class;
-
-                                                        return $featureClass::pluck('name', 'id')->toArray();
-                                                    })
-                                                    ->disableOptionWhen(function ($value, $state, $get) {
-                                                        // Prevent selecting the same feature multiple times within this price
-                                                        return collect($get('../../planPriceFeatureOverrides'))
-                                                            ->reject(fn ($item) => $item === $state)
-                                                            ->pluck('feature_id')
-                                                            ->contains($value);
-                                                    })
-                                                    ->required()
-                                                    ->searchable()
-                                                    ->preload(),
-
-                                                Forms\Components\TextInput::make('value')
-                                                    ->label('Override Value')
-                                                    ->required()
-                                                    ->helperText('This value will override the default plan feature value for this specific price.'),
-
-                                                Forms\Components\Toggle::make('is_soft_limit')
-                                                    ->label('Soft Limit')
-                                                    ->default(false)
-                                                    ->live()
-                                                    ->columnSpanFull(),
-
-                                                Forms\Components\TextInput::make('overage_price')
-                                                    ->label('Overage Price')
-                                                    ->numeric()
-                                                    ->step(0.0001)
-                                                    ->hidden(fn ($get) => ! $get('is_soft_limit'))
-                                                    ->prefix(fn ($get) => match ($get('overage_currency')) {
-                                                        'USD' => '$',
-                                                        'EUR' => '€',
-                                                        'GBP' => '£',
-                                                        'CAD' => 'C$',
-                                                        default => '',
-                                                    }),
-
-                                                Forms\Components\Select::make('overage_currency')
-                                                    ->label('Overage Currency')
-                                                    ->hidden(fn ($get) => ! $get('is_soft_limit'))
-                                                    ->options([
-                                                        'USD' => 'USD ($)',
-                                                        'EUR' => 'EUR (€)',
-                                                        'GBP' => 'GBP (£)',
-                                                        'CAD' => 'CAD (C$)',
-                                                    ])
-                                                    ->searchable(),
-                                            ])
-                                            ->columns(2)
-                                            ->collapsible()
-                                            ->collapsed()
-                                            ->itemLabel(function ($state) {
-                                                if (! isset($state['feature_id'])) {
-                                                    return 'New Override';
-                                                }
-
-                                                $featureClass = \NtechServices\SubscriptionSystem\Models\Feature::class;
-                                                $featureName = $featureClass::find($state['feature_id'])?->name;
-                                                $value = $state['value'] ?? '';
-
-                                                return $featureName ? "{$featureName}: {$value}" : 'New Override';
-                                            })
-
-                                            ->addActionLabel('Add Feature Override')
-                                            ->reorderable(false),
-                                    ])
-                                    ->collapsible()
-                                    ->collapsed()
-                                    ->compact(),
-                            ])
-                            ->collapsible()
-                            ->itemLabel(function (array $state): ?string {
-                                if (! isset($state['currency'], $state['price'])) {
-                                    return 'New Price';
+                            ->collapsed()
+                            ->itemLabel(function($state){
+                                if (!isset($state['feature_id'])) {
+                                    return 'New Override';
                                 }
-
-                                $overrideCount = count($state['planPriceFeatureOverrides'] ?? []);
-                                $overrideText = $overrideCount > 0 ? " ({$overrideCount} overrides)" : '';
-
-                                return "{$state['currency']} {$state['price']}{$overrideText}";
+                                
+                                $featureClass = ConfigHelper::getConfigClass('feature', \NtechServices\SubscriptionSystem\Models\Feature::class);
+                                $featureName = $featureClass::find($state['feature_id'])?->name;
+                                $value = $state['value'] ?? '';
+                                
+                                return $featureName ? "{$featureName}: {$value}" : 'New Override';
                             })
-                            ->addActionLabel('Add Price')
-                            ->reorderable()
-                            ->cloneable(),
+                            ->addActionLabel('Add Feature Override')
+                            ->reorderable(false)
+                            ->columnSpanFull(),
                     ])
-                    ->collapsible(),
-            ]);
+                    ->columns(2)
+                    ->collapsible()
+                    ->itemLabel(function (array $state): ?string {
+                        if (!isset($state['currency'], $state['price'])) {
+                            return 'New Price';
+                        }
+                        
+                        $overrideCount = count($state['planPriceFeatureOverrides'] ?? []);
+                        $overrideText = $overrideCount > 0 ? " ({$overrideCount} overrides)" : '';
+                        
+                        return "{$state['currency']} {$state['price']}{$overrideText}";
+                    })
+                    ->addActionLabel('Add Price')
+                    ->reorderable()
+                    ->cloneable()
+                    ->columnSpanFull(),
+            ])
+            ->columns(2);
     }
 
     public static function table(Table $table): Table
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('id')->label('ID'),
-                Tables\Columns\TextColumn::make('name')->searchable(),
-                Tables\Columns\TextColumn::make('order')->sortable(),
-                Tables\Columns\IconColumn::make('popular')->boolean(),
-                Tables\Columns\TextColumn::make('description')->searchable(),
-                Tables\Columns\TextColumn::make('billing_cycle')->searchable(),
-                Tables\Columns\TextColumn::make('trial_value')->searchable(),
-                Tables\Columns\TextColumn::make('trial_cycle')->searchable(),
-                Tables\Columns\TextColumn::make('features_count')
+                TextColumn::make('id')
+                    ->label('ID')
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+
+                TextColumn::make('name')
+                    ->label('Plan Name')
+                    ->searchable()
+                    ->sortable()
+                    ->weight('bold')
+                    ->color('primary'),
+
+                TextColumn::make('order')
+                    ->label('Order')
+                    ->sortable()
+                    ->alignment(Alignment::Center),
+
+                IconColumn::make('popular')
+                    ->label('Popular')
+                    ->boolean()
+                    ->trueIcon('heroicon-o-star')
+                    ->falseIcon('')
+                    ->trueColor('warning'),
+
+                TextColumn::make('description')
+                    ->label('Description')
+                    ->searchable()
+                    ->limit(30)
+                    ->tooltip(function (NtechPlan $record): ?string {
+                        return strlen($record->description ?? '') > 30 ? $record->description : null;
+                    }),
+
+                TextColumn::make('trial_value')
+                    ->label('Trial')
+                    ->formatStateUsing(function ($state, NtechPlan $record) {
+                        return $state . ' ' . strtolower($record->trial_cycle);
+                    })
+                    ->alignment(Alignment::Center),
+
+                TextColumn::make('features_count')
                     ->label('Features')
                     ->counts('features')
-                    ->badge(),
-                Tables\Columns\TextColumn::make('planPrices_count')
+                    ->badge()
+                    ->color('info')
+                    ->alignment(Alignment::Center),
+
+                TextColumn::make('planPrices_count')
                     ->label('Prices')
                     ->counts('planPrices')
-                    ->badge(),
+                    ->badge()
+                    ->color('success')
+                    ->alignment(Alignment::Center),
+
+                TextColumn::make('created_at')
+                    ->label('Created')
+                    ->dateTime('d/m/Y H:i')
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+            ])
+            ->filters([
+                TernaryFilter::make('popular')
+                    ->label('Popular Plans'),
+
+                SelectFilter::make('trial_cycle')
+                    ->label('Trial Cycle')
+                    ->options([
+                        NtechBillingCycle::DAILY->value => NtechBillingCycle::DAILY->name,
+                        NtechBillingCycle::WEEKLY->value => NtechBillingCycle::WEEKLY->name,
+                        NtechBillingCycle::MONTHLY->value => NtechBillingCycle::MONTHLY->name,
+                        NtechBillingCycle::YEARLY->value => NtechBillingCycle::YEARLY->name,
+                    ]),
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                ActionGroup::make([
+                    ViewAction::make(),
+                    EditAction::make(),
 
-                Tables\Actions\Action::make('edit_features')
-                    ->label('Features')
-                    ->icon('heroicon-o-adjustments-horizontal')
-                    ->url(fn ($record) => route('filament.admin.resources.ntech-plans.edit', [
-                        'record' => $record,
-                        'activeRelationManager' => 'features',
-                    ])),
+                    Action::make('edit_features')
+                        ->label('Manage Features')
+                        ->icon('heroicon-o-adjustments-horizontal')
+                        ->color('info')
+                        ->url(fn ($record) => route('filament.admin.resources.ntech-plans.edit', [
+                            'record' => $record,
+                            'activeRelationManager' => 'features',
+                        ])),
 
-                Tables\Actions\Action::make('edit_prices')
-                    ->label('Prices')
-                    ->icon('heroicon-o-currency-dollar')
-                    ->url(fn ($record) => route('filament.admin.resources.ntech-plans.edit', [
-                        'record' => $record,
-                        'activeRelationManager' => 'prices',
-                    ])),
+                    Action::make('edit_prices')
+                        ->label('Manage Prices')
+                        ->icon('heroicon-o-currency-dollar')
+                        ->color('warning')
+                        ->url(fn ($record) => route('filament.admin.resources.ntech-plans.edit', [
+                            'record' => $record,
+                            'activeRelationManager' => 'prices',
+                        ])),
+
+                    Action::make('toggle_popular')
+                        ->label(fn (NtechPlan $record) => $record->popular ? 'Remove Popular' : 'Mark as Popular')
+                        ->icon(fn (NtechPlan $record) => $record->popular ? 'heroicon-o-star' : 'heroicon-s-star')
+                        ->color('warning')
+                        ->action(function (NtechPlan $record) {
+                            $record->update(['popular' => !$record->popular]);
+                            
+                            \Filament\Notifications\Notification::make()
+                                ->title($record->popular ? 'Plan marked as popular' : 'Plan unmarked as popular')
+                                ->success()
+                                ->body("Plan '{$record->name}' has been " . ($record->popular ? 'marked as popular' : 'unmarked as popular') . ".")
+                                ->send();
+                        }),
+
+                    Action::make('duplicate')
+                        ->label('Duplicate Plan')
+                        ->icon('heroicon-o-document-duplicate')
+                        ->color('info')
+                        ->action(function (NtechPlan $record) {
+                            $newPlan = $record->replicate(['popular']);
+                            $newPlan->name = $record->name . ' (Copy)';
+                            $newPlan->popular = false;
+                            $newPlan->save();
+
+                            // Copy features
+                            foreach ($record->features as $feature) {
+                                $newPlan->features()->attach($feature->id, [
+                                    'value' => $feature->pivot->value,
+                                    'is_soft_limit' => $feature->pivot->is_soft_limit,
+                                    'overage_price' => $feature->pivot->overage_price,
+                                    'overage_currency' => $feature->pivot->overage_currency,
+                                ]);
+                            }
+                            
+                            \Filament\Notifications\Notification::make()
+                                ->title('Plan duplicated')
+                                ->success()
+                                ->body("New plan '{$newPlan->name}' has been created.")
+                                ->send();
+                        }),
+
+                    DeleteAction::make(),
+                ])
+                ->label('Actions')
+                ->color('primary')
+                ->icon('heroicon-m-ellipsis-vertical')
+                ->button(),
             ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+            ->headerActions([
+                CreateAction::make()
+                    ->label('New Plan')
+                    ->icon('heroicon-o-plus'),
+            ])
+            ->groupedBulkActions([
+                BulkActionGroup::make([
+                    BulkAction::make('mark_popular')
+                        ->label('Mark as Popular')
+                        ->icon('heroicon-o-star')
+                        ->color('warning')
+                        ->action(fn ($records) => 
+                            $records->each(fn ($record) => 
+                                $record->update(['popular' => true])
+                            )
+                        )
+                        ->deselectRecordsAfterCompletion(),
+                    
+                    BulkAction::make('unmark_popular')
+                        ->label('Remove Popular')
+                        ->icon('heroicon-o-star')
+                        ->color('gray')
+                        ->action(fn ($records) => 
+                            $records->each(fn ($record) => 
+                                $record->update(['popular' => false])
+                            )
+                        )
+                        ->deselectRecordsAfterCompletion(),
+
+                    DeleteBulkAction::make(),
                 ]),
-            ]);
+            ])
+            ->emptyStateActions([
+                CreateAction::make()
+                    ->label('Create your first plan')
+                    ->icon('heroicon-o-plus'),
+            ])
+            ->defaultSort('order', 'asc')
+            ->reorderable('order')
+            ->persistSortInSession()
+            ->persistSearchInSession()
+            ->persistFiltersInSession()
+            ->striped()
+            ->paginated([10, 25, 50]);
     }
 
     public static function getRelations(): array
@@ -311,6 +496,34 @@ class NtechPlanResource extends Resource
         return [
             RelationManagers\FeatureValuesRelationManager::class,
             RelationManagers\PricesRelationManager::class,
+        ];
+    }
+
+    // Navigation Badge
+    public static function getNavigationBadge(): ?string
+    {
+        return static::getModel()::count() ?: null;
+    }
+
+    public static function getNavigationBadgeColor(): ?string
+    {
+        $popularCount = static::getModel()::where('popular', true)->count();
+        return $popularCount > 0 ? 'success' : 'primary';
+    }
+
+    // Global Search
+    public static function getGlobalSearchResultTitle(\Illuminate\Database\Eloquent\Model $record): string
+    {
+        return $record->name;
+    }
+
+    public static function getGlobalSearchResultDetails(\Illuminate\Database\Eloquent\Model $record): array
+    {
+        return [
+            'Features' => $record->features()->count(),
+            'Prices' => $record->planPrices()->count(),
+            'Trial' => $record->trial_value . ' ' . strtolower($record->trial_cycle),
+            'Popular' => $record->popular ? 'Yes' : 'No',
         ];
     }
 

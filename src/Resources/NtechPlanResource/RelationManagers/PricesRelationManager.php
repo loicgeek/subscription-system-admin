@@ -3,18 +3,18 @@
 namespace NtechServices\SubscriptionSystemAdmin\Resources\NtechPlanResource\RelationManagers;
 
 use Filament\Forms;
-use Filament\Forms\Form;
-use Filament\Resources\RelationManagers\RelationManager;
+use Filament\Schemas\Schema;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Filament\Resources\RelationManagers\RelationManager;
 
 class PricesRelationManager extends RelationManager
 {
     protected static string $relationship = 'planPrices'; // related to $plan->prices()
 
-    public function form(Form $form): Form
+    public function form(Schema $schema): Schema
     {
-        return $form->schema([
+        return $schema->schema([
             Forms\Components\TextInput::make('price')->numeric()->required(),
             Forms\Components\TextInput::make('currency')->required(),
             Forms\Components\Select::make('billing_cycle')
