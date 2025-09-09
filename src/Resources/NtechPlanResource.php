@@ -227,10 +227,10 @@ class NtechPlanResource extends Resource
                             ])
                             ->required()
                             ->columnSpan(1),
-                        Forms\Components\Toggle::make('is_active')
-                            ->label('Active')
-                            ->default(true)
-                            ->columnSpan(1),
+                        // Forms\Components\Toggle::make('is_active')
+                        //     ->label('Active')
+                        //     ->default(true)
+                        //     ->columnSpan(1),
 
                         // Feature Overrides
                         Forms\Components\Repeater::make('planPriceFeatureOverrides')
@@ -376,7 +376,7 @@ class NtechPlanResource extends Resource
                     ->color('info')
                     ->alignment(Alignment::Center),
 
-                TextColumn::make('planPrices_count')
+                TextColumn::make('plan_prices_count')
                     ->label('Prices')
                     ->counts('planPrices')
                     ->badge()
