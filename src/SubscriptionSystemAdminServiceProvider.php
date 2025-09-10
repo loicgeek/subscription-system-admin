@@ -9,6 +9,7 @@ use Filament\Support\Assets\Js;
 use Filament\Support\Facades\FilamentAsset;
 use Filament\Support\Facades\FilamentIcon;
 use Illuminate\Filesystem\Filesystem;
+use Illuminate\Support\Facades\Route;
 use Livewire\Features\SupportTesting\Testable;
 use NtechServices\SubscriptionSystemAdmin\Commands\SubscriptionSystemAdminCommand;
 use NtechServices\SubscriptionSystemAdmin\Testing\TestsSubscriptionSystemAdmin;
@@ -31,6 +32,7 @@ class SubscriptionSystemAdminServiceProvider extends PackageServiceProvider
          */
         $package->name(static::$name)
             ->hasCommands($this->getCommands())
+            // ->hasRoutes(['web', 'api']) // Add this line for route registration
             ->hasInstallCommand(function (InstallCommand $command) {
                 $command
                     ->publishConfigFile()
@@ -62,6 +64,16 @@ class SubscriptionSystemAdminServiceProvider extends PackageServiceProvider
 
     public function packageBooted(): void
     {
+         // Publish config file
+         $this->publishes([
+            __DIR__ . '/../config/subscription-system-admin.php' => config_path('subscription-system-admin.php'),
+        ], 'subscription-system-admin-config');
+         // Publish language files
+         $this->publishes([
+            __DIR__ . '/../resources/lang' => $this->app->langPath('ntech-services/subscription-system-admin'),
+        ], 'subscription-system-admin-lang');
+
+
         // Asset Registration
         FilamentAsset::register(
             $this->getAssets(),
@@ -84,10 +96,37 @@ class SubscriptionSystemAdminServiceProvider extends PackageServiceProvider
                 ], 'subscription-system-admin-stubs');
             }
         }
+        if (config('subscription-system-admin.enable_api_routes', true)) {
+            $this->registerApiRoutes();
+        }
+    
+        if (config('subscription-system-admin.enable_web_routes', false)) {
+            $this->registerWebRoutes();
+        }
 
         // Testing
         Testable::mixin(new TestsSubscriptionSystemAdmin);
     }
+
+    protected function registerApiRoutes(): void
+{
+    Route::group([
+        'prefix' => config('subscription-system-admin.api_prefix', 'api/subscription'),
+        'middleware' => config('subscription-system-admin.api_middleware', ['api']),
+    ], function () {
+        require __DIR__ . '/../routes/api.php';
+    });
+}
+
+protected function registerWebRoutes(): void
+{
+    Route::group([
+        'prefix' => config('subscription-system-admin.web_prefix', 'subscription'),
+        'middleware' => config('subscription-system-admin.web_middleware', ['web', 'auth']),
+    ], function () {
+        require __DIR__ . '/../routes/web.php';
+    });
+}
 
     protected function getAssetPackageName(): ?string
     {
@@ -129,7 +168,9 @@ class SubscriptionSystemAdminServiceProvider extends PackageServiceProvider
      */
     protected function getRoutes(): array
     {
-        return [];
+        return [
+           
+        ];
     }
 
     /**
