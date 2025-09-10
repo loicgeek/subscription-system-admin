@@ -15,10 +15,10 @@ class PlanController extends Controller
             'trial_value', 'trial_cycle', 'created_at', 'updated_at'
         ])
         ->with([
-            'features:id,name,slug,description',
-            'planPrices:id,plan_id,price,currency,billing_cycle,is_active,created_at,updated_at',
-            'planPrices.planPriceFeatureOverrides:id,plan_price_id,feature_id,value,is_soft_limit,overage_price,overage_currency',
-            'planPrices.planPriceFeatureOverrides.feature:id,name,slug'
+            'features:*',
+            'planPrices:*',
+            'planPrices.planPriceFeatureOverrides:*',
+            'planPrices.planPriceFeatureOverrides.feature:*'
         ])
         ->orderBy('order')
         ->get();

@@ -76,3 +76,12 @@ Please review [our security policy](../../security/policy) on how to report secu
 ## License
 
 The MIT License (MIT). Please see [License File](LICENSE.md) for more information.
+
+
+To use the package, you need to publish the config file and run the migrations:
+
+```bash
+php artisan vendor:publish --tag="subscription-system-admin-config"
+php artisan migrate
+```
+
