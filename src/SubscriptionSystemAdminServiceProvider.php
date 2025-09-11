@@ -74,7 +74,7 @@ class SubscriptionSystemAdminServiceProvider extends PackageServiceProvider
 
     // Change this path to use Laravel's standard vendor path
     $this->publishes([
-        __DIR__ . '/../resources/lang' => $this->app->langPath('vendor/subscription-system-admin'),
+        __DIR__ . '/../resources/lang' => resource_path('lang/vendor/subscription-system-admin'),
     ], 'subscription-system-admin-lang');
 
 
