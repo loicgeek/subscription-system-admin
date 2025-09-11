@@ -69,9 +69,13 @@ class SubscriptionSystemAdminServiceProvider extends PackageServiceProvider
             __DIR__ . '/../config/subscription-system-admin.php' => config_path('subscription-system-admin.php'),
         ], 'subscription-system-admin-config');
          // Publish language files
-         $this->publishes([
-            __DIR__ . '/../resources/lang' => $this->app->langPath('ntech-services/subscription-system-admin'),
-        ], 'subscription-system-admin-lang');
+       // Load package translations
+    $this->loadTranslationsFrom(__DIR__ . '/../resources/lang', 'subscription-system-admin');
+
+    // Change this path to use Laravel's standard vendor path
+    $this->publishes([
+        __DIR__ . '/../resources/lang' => $this->app->langPath('vendor/subscription-system-admin'),
+    ], 'subscription-system-admin-lang');
 
 
         // Asset Registration

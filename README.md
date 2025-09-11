@@ -85,3 +85,9 @@ php artisan vendor:publish --tag="subscription-system-admin-config"
 php artisan migrate
 ```
 
+Publish translations 
+```bash
+php artisan vendor:publish --tag="subscription-system-admin-lang"
+```
+
+
