@@ -39,7 +39,7 @@ class NtechFeatureResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-star';
 
-    protected static ?string $navigationLabel = 'Features';
+    protected static ?string $navigationLabel = null;
 
     protected static string|UnitEnum|null $navigationGroup = 'Ntech-Services';
 
@@ -47,38 +47,43 @@ class NtechFeatureResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'name';
 
+    public static function getNavigationLabel(): string
+    {
+        return __('subscription-system-admin::feature.navigation_label');
+    }
+
     public static function form(Schema $schema): Schema
     {
         return $schema
             ->schema([
                 Forms\Components\TextInput::make('name')
-                    ->label('Feature Name')
+                    ->label(__('subscription-system-admin::feature.fields.name'))
                     ->required()
                     ->maxLength(255)
-                    ->placeholder('API Access')
+                    ->placeholder(__('subscription-system-admin::feature.placeholders.name'))
                     ->columnSpan(1),
                 Forms\Components\TextInput::make('slug')
-                    ->label('Slug')
+                    ->label(__('subscription-system-admin::feature.fields.slug'))
                     ->maxLength(255)
-                    ->placeholder('api-access')
-                    ->helperText('Unique identifier for the feature')
+                    ->placeholder(__('subscription-system-admin::feature.placeholders.slug'))
+                    ->helperText(__('subscription-system-admin::feature.help.slug'))
                     ->columnSpan(1),
                 Forms\Components\Textarea::make('description')
-                    ->label('Description')
+                    ->label(__('subscription-system-admin::feature.fields.description'))
                     ->required()
                     ->rows(3)
-                    ->placeholder('Access to our powerful API with unlimited requests')
+                    ->placeholder(__('subscription-system-admin::feature.placeholders.description'))
                     ->columnSpanFull(),
                
                 Forms\Components\TextInput::make('default_value')
-                    ->label('Default Value')
-                    ->placeholder('0, false, or empty')
-                    ->helperText('Default value when not included in a plan')
+                    ->label(__('subscription-system-admin::feature.fields.default_value'))
+                    ->placeholder(__('subscription-system-admin::feature.placeholders.default_value'))
+                    ->helperText(__('subscription-system-admin::feature.help.default_value'))
                     ->columnSpan(1),
                 Forms\Components\Toggle::make('is_active')
-                    ->label('Active')
+                    ->label(__('subscription-system-admin::feature.fields.active'))
                     ->default(true)
-                    ->helperText('Whether this feature is available for assignment')
+                    ->helperText(__('subscription-system-admin::feature.help.active'))
                     ->columnSpan(1),
 
             ])
@@ -90,58 +95,49 @@ class NtechFeatureResource extends Resource
         return $table
             ->columns([
                 TextColumn::make('name')
-                    ->label('Name')
+                    ->label(__('subscription-system-admin::feature.fields.name'))
                     ->searchable()
                     ->sortable()
                     ->weight('bold')
                     ->color('primary'),
 
                 TextColumn::make('slug')
-                    ->label('Slug')
+                    ->label(__('subscription-system-admin::feature.fields.slug'))
                     ->searchable()
                     ->color('gray')
                     ->copyable()
-                    ->copyMessage('Feature slug copied!')
+                    ->copyMessage(__('subscription-system-admin::feature.messages.slug_copied'))
                     ->toggleable(),
 
                 TextColumn::make('description')
-                    ->label('Description')
+                    ->label(__('subscription-system-admin::feature.fields.description'))
                     ->limit(50)
                     ->tooltip(function (NtechFeature $record): ?string {
                         return strlen($record->description) > 50 ? $record->description : null;
                     }),
 
-
                 TextColumn::make('default_value')
-                    ->label('Default')
-                    ->placeholder('None')
+                    ->label(__('subscription-system-admin::feature.table.default'))
+                    ->placeholder(__('subscription-system-admin::feature.table.none'))
                     ->alignment(Alignment::Center),
 
-
                 IconColumn::make('is_active')
-                    ->label('Active')
+                    ->label(__('subscription-system-admin::feature.fields.active'))
                     ->boolean()
                     ->trueIcon('heroicon-o-check-circle')
                     ->falseIcon('heroicon-o-x-circle')
                     ->trueColor('success')
                     ->falseColor('danger'),
 
-              
-
-               
-
                 TextColumn::make('created_at')
-                    ->label('Created')
+                    ->label(__('subscription-system-admin::general.fields.created_at'))
                     ->dateTime('d/m/Y H:i')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-
                 TernaryFilter::make('is_active')
-                    ->label('Active Status'),
-
-              
+                    ->label(__('subscription-system-admin::feature.filters.active_status')),
             ])
             ->actions([
                 ActionGroup::make([
@@ -149,54 +145,55 @@ class NtechFeatureResource extends Resource
                     EditAction::make(),
                     
                     Action::make('toggle_active')
-                        ->label(fn (NtechFeature $record) => $record->is_active ? 'Deactivate' : 'Activate')
+                        ->label(fn (NtechFeature $record) => $record->is_active ? __('subscription-system-admin::feature.actions.deactivate') : __('subscription-system-admin::feature.actions.activate'))
                         ->icon(fn (NtechFeature $record) => $record->is_active ? 'heroicon-o-x-circle' : 'heroicon-o-check-circle')
                         ->color(fn (NtechFeature $record) => $record->is_active ? 'danger' : 'success')
                         ->action(function (NtechFeature $record) {
                             $record->update(['is_active' => !$record->is_active]);
                             
                             \Filament\Notifications\Notification::make()
-                                ->title($record->is_active ? 'Feature activated' : 'Feature deactivated')
+                                ->title($record->is_active ? __('subscription-system-admin::feature.notifications.activated') : __('subscription-system-admin::feature.notifications.deactivated'))
                                 ->success()
-                                ->body("Feature '{$record->name}' has been " . ($record->is_active ? 'activated' : 'deactivated') . ".")
+                                ->body(__('subscription-system-admin::feature.notifications.status_changed', [
+                                    'name' => $record->name,
+                                    'status' => $record->is_active ? __('subscription-system-admin::feature.notifications.activated') : __('subscription-system-admin::feature.notifications.deactivated')
+                                ]))
                                 ->send();
                         }),
                     
-
-                    
                     Action::make('duplicate')
-                        ->label('Duplicate')
+                        ->label(__('subscription-system-admin::feature.actions.duplicate'))
                         ->icon('heroicon-o-document-duplicate')
                         ->color('info')
                         ->action(function (NtechFeature $record) {
                             $newFeature = $record->replicate();
-                            $newFeature->name = $record->name . ' (Copy)';
+                            $newFeature->name = $record->name . ' ' . __('subscription-system-admin::general.copy_suffix');
                             $newFeature->slug = $record->slug ? $record->slug . '-copy' : null;
                             $newFeature->save();
                             
                             \Filament\Notifications\Notification::make()
-                                ->title('Feature duplicated')
+                                ->title(__('subscription-system-admin::feature.notifications.duplicated'))
                                 ->success()
-                                ->body("New feature '{$newFeature->name}' has been created.")
+                                ->body(__('subscription-system-admin::feature.notifications.feature_duplicated', ['name' => $newFeature->name]))
                                 ->send();
                         }),
                     
                     DeleteAction::make(),
                 ])
-                ->label('Actions')
+                ->label(__('subscription-system-admin::general.actions'))
                 ->color('primary')
                 ->icon('heroicon-m-ellipsis-vertical')
                 ->button(),
             ])
             ->headerActions([
                 CreateAction::make()
-                    ->label('New Feature')
+                    ->label(__('subscription-system-admin::feature.actions.new_feature'))
                     ->icon('heroicon-o-plus'),
             ])
             ->groupedBulkActions([
                 BulkActionGroup::make([
                     BulkAction::make('activate')
-                        ->label('Activate Selected')
+                        ->label(__('subscription-system-admin::feature.bulk_actions.activate_selected'))
                         ->icon('heroicon-o-check-circle')
                         ->color('success')
                         ->action(fn ($records) => 
@@ -207,7 +204,7 @@ class NtechFeatureResource extends Resource
                         ->deselectRecordsAfterCompletion(),
                     
                     BulkAction::make('deactivate')
-                        ->label('Deactivate Selected')
+                        ->label(__('subscription-system-admin::feature.bulk_actions.deactivate_selected'))
                         ->icon('heroicon-o-x-circle')
                         ->color('danger')
                         ->action(fn ($records) => 
@@ -217,13 +214,12 @@ class NtechFeatureResource extends Resource
                         )
                         ->deselectRecordsAfterCompletion(),
                     
-                    
                     DeleteBulkAction::make(),
                 ]),
             ])
             ->emptyStateActions([
                 CreateAction::make()
-                    ->label('Create your first feature')
+                    ->label(__('subscription-system-admin::feature.empty_state.create_first'))
                     ->icon('heroicon-o-plus'),
             ])
             ->persistSortInSession()
@@ -261,8 +257,8 @@ class NtechFeatureResource extends Resource
     public static function getGlobalSearchResultDetails(\Illuminate\Database\Eloquent\Model $record): array
     {
         return [
-            'Status' => $record->is_active ? 'Active' : 'Inactive',
-            'Default' => $record->default_value ?? 'None',
+            __('subscription-system-admin::feature.global_search.status') => $record->is_active ? __('subscription-system-admin::feature.global_search.active') : __('subscription-system-admin::feature.global_search.inactive'),
+            __('subscription-system-admin::feature.global_search.default') => $record->default_value ?? __('subscription-system-admin::feature.table.none'),
         ];
     }
 

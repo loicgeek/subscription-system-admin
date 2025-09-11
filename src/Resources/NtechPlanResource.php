@@ -37,7 +37,7 @@ class NtechPlanResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-squares-2x2';
 
-    protected static ?string $navigationLabel = 'Plans';
+    protected static ?string $navigationLabel = null;
 
     protected static string|UnitEnum|null $navigationGroup = 'Ntech-Services';
 
@@ -45,69 +45,72 @@ class NtechPlanResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'name';
 
+    public static function getNavigationLabel(): string
+    {
+        return __('subscription-system-admin::plan.navigation_label');
+    }
+
     public static function form(Schema $schema): Schema
     {
         return $schema
             ->schema([
                 // Plan Details
                 Forms\Components\TextInput::make('name')
-                    ->label('Plan Name')
+                    ->label(__('subscription-system-admin::plan.fields.name'))
                     ->required()
                     ->live()
                     ->maxLength(255)
-                    ->placeholder('Basic Plan')
+                    ->placeholder(__('subscription-system-admin::plan.placeholders.name'))
                     ->afterStateUpdated(function ($state, callable $set) {
                         $set('slug', \Illuminate\Support\Str::slug($state));
                     })
                     ->columnSpan(1),
-                    Forms\Components\TextInput::make('slug')
-                    ->label('Slug')
+                Forms\Components\TextInput::make('slug')
+                    ->label(__('subscription-system-admin::plan.fields.slug'))
                     ->required(),
                 Forms\Components\Textarea::make('description')
-                    ->label('Description')
+                    ->label(__('subscription-system-admin::plan.fields.description'))
                     ->rows(2)
                     ->maxLength(500)
-                    ->placeholder('Perfect for small teams and startups')
+                    ->placeholder(__('subscription-system-admin::plan.placeholders.description'))
                     ->columnSpan(1),
                 Forms\Components\TextInput::make('order')
-                    ->label('Display Order')
+                    ->label(__('subscription-system-admin::plan.fields.order'))
                     ->numeric()
                     ->default(0)
                     ->placeholder('0')
                     ->columnSpan(1),
                
                 Forms\Components\Toggle::make('popular')
-                    ->label('Mark as Popular')
+                    ->label(__('subscription-system-admin::plan.fields.popular'))
                     ->default(false)
-                    ->helperText('This plan will be highlighted in pricing tables')
+                    ->helperText(__('subscription-system-admin::plan.help.popular'))
                     ->columnSpan(2),
 
                 // Trial Configuration
                 Forms\Components\TextInput::make('trial_value')
-                    ->label('Trial Duration')
+                    ->label(__('subscription-system-admin::plan.fields.trial_value'))
                     ->numeric()
                     ->default(0)
                     ->columnSpan(1),
                 Forms\Components\Select::make('trial_cycle')
-                    ->label('Trial Cycle')
+                    ->label(__('subscription-system-admin::plan.fields.trial_cycle'))
                     ->options([
-                        NtechBillingCycle::DAILY->value => NtechBillingCycle::DAILY->name,
-                        NtechBillingCycle::WEEKLY->value => NtechBillingCycle::WEEKLY->name,
-                        NtechBillingCycle::MONTHLY->value => NtechBillingCycle::MONTHLY->name,
-                        NtechBillingCycle::YEARLY->value => NtechBillingCycle::YEARLY->name,
+                        NtechBillingCycle::DAILY->value => __('subscription-system-admin::billing_cycle.daily'),
+                        NtechBillingCycle::WEEKLY->value => __('subscription-system-admin::billing_cycle.weekly'),
+                        NtechBillingCycle::MONTHLY->value => __('subscription-system-admin::billing_cycle.monthly'),
+                        NtechBillingCycle::YEARLY->value => __('subscription-system-admin::billing_cycle.yearly'),
                     ])
                     ->required()
                     ->default(NtechBillingCycle::DAILY->value)
                     ->columnSpan(1),
 
                 // Features
-                // Features - Manual handling (this works reliably)
                 Forms\Components\Repeater::make('features')
-                    ->label('Plan Features')
-                    // NO ->relationship() here
+                    ->label(__('subscription-system-admin::plan.sections.features'))
                     ->schema([
                         Forms\Components\Select::make('feature_id')
-                        ->label('Feature')
+                        ->label(__('subscription-system-admin::feature.singular'))
                         ->options(function () {
                             $featureClass = ConfigHelper::getConfigClass('feature', \NtechServices\SubscriptionSystem\Models\Feature::class);
                             return $featureClass::pluck('name', 'id')->toArray();
@@ -115,11 +118,10 @@ class NtechPlanResource extends Resource
                         ->disableOptionWhen(function ($value, $state, $get) {
                             $allSelectedFeatures = collect($get('../../features'))
                                 ->pluck('feature_id')
-                                ->filter(); // Remove empty values
+                                ->filter();
                                 
                             $currentSelection = $get('feature_id');
                             
-                            // Only disable if the value is selected elsewhere (not in current field)
                             return $allSelectedFeatures->contains($value) && $value !== $currentSelection;
                         })
                         ->required()
@@ -127,20 +129,20 @@ class NtechPlanResource extends Resource
                         ->preload()
                         ->columnSpan(1),
                             
-                        Forms\Components\TextInput::make('value') // Direct field, no pivot prefix
-                            ->label('Value')
+                        Forms\Components\TextInput::make('value')
+                            ->label(__('subscription-system-admin::plan.fields.value'))
                             ->required()
-                            ->placeholder('100, true, unlimited')
+                            ->placeholder(__('subscription-system-admin::plan.placeholders.value'))
                             ->columnSpan(1),
                             
-                        Forms\Components\Toggle::make('is_soft_limit') // Direct field, no pivot prefix
-                            ->label('Soft Limit')
+                        Forms\Components\Toggle::make('is_soft_limit')
+                            ->label(__('subscription-system-admin::plan.fields.soft_limit'))
                             ->default(false)
                             ->live()
                             ->columnSpan(1),
                             
-                        Forms\Components\TextInput::make('overage_price') // Direct field, no pivot prefix
-                            ->label('Overage Price')
+                        Forms\Components\TextInput::make('overage_price')
+                            ->label(__('subscription-system-admin::plan.fields.overage_price'))
                             ->numeric()
                             ->step(0.0001)
                             ->visible(fn ($get) => $get('is_soft_limit'))
@@ -153,14 +155,14 @@ class NtechPlanResource extends Resource
                             })
                             ->columnSpan(1),
                             
-                        Forms\Components\Select::make('overage_currency') // Direct field, no pivot prefix
-                            ->label('Overage Currency')
+                        Forms\Components\Select::make('overage_currency')
+                            ->label(__('subscription-system-admin::plan.fields.overage_currency'))
                             ->visible(fn ($get) => $get('is_soft_limit'))
                             ->options([
-                                'USD' => 'USD ($)',
-                                'EUR' => 'EUR (€)',
-                                'GBP' => 'GBP (£)',
-                                'CAD' => 'CAD (C$)',
+                                'USD' => __('subscription-system-admin::currency.usd'),
+                                'EUR' => __('subscription-system-admin::currency.eur'),
+                                'GBP' => __('subscription-system-admin::currency.gbp'),
+                                'CAD' => __('subscription-system-admin::currency.cad'),
                             ])
                             ->searchable()
                             ->columnSpan(1),
@@ -170,42 +172,41 @@ class NtechPlanResource extends Resource
                     ->reorderable()
                     ->itemLabel(function (array $state): ?string {
                         if (!isset($state['feature_id'])) {
-                            return 'New Feature';
+                            return __('subscription-system-admin::plan.repeater.new_feature');
                         }
                         
-                        // Cache features to avoid repeated queries
                         static $features = null;
                         if ($features === null) {
                             $featureClass = ConfigHelper::getConfigClass('feature', \NtechServices\SubscriptionSystem\Models\Feature::class);
                             $features = $featureClass::pluck('name', 'id')->toArray();
                         }
                         
-                        $featureName = $features[$state['feature_id']] ?? 'Unknown Feature';
+                        $featureName = $features[$state['feature_id']] ?? __('subscription-system-admin::plan.repeater.unknown_feature');
                         $value = $state['value'] ?? '';
                         
                         return $featureName . ($value ? ": {$value}" : '');
                     })
-                    ->addActionLabel('Add Feature')
+                    ->addActionLabel(__('subscription-system-admin::plan.actions.add_feature'))
                     ->columnSpanFull(),
 
                 // Prices
                 Forms\Components\Repeater::make('planPrices')
-                    ->label('Plan Prices')
+                    ->label(__('subscription-system-admin::plan.sections.prices'))
                     ->relationship()
                     ->schema([
                         Forms\Components\Select::make('currency')
-                            ->label('Currency')
+                            ->label(__('subscription-system-admin::plan.fields.currency'))
                             ->options([
-                                'USD' => 'USD ($)',
-                                'EUR' => 'EUR (€)',
-                                'GBP' => 'GBP (£)',
-                                'CAD' => 'CAD (C$)',
+                                'USD' => __('subscription-system-admin::currency.usd'),
+                                'EUR' => __('subscription-system-admin::currency.eur'),
+                                'GBP' => __('subscription-system-admin::currency.gbp'),
+                                'CAD' => __('subscription-system-admin::currency.cad'),
                             ])
                             ->required()
                             ->searchable()
                             ->columnSpan(1),
                         Forms\Components\TextInput::make('price')
-                            ->label('Price')
+                            ->label(__('subscription-system-admin::plan.fields.price'))
                             ->numeric()
                             ->step(0.01)
                             ->required()
@@ -218,27 +219,23 @@ class NtechPlanResource extends Resource
                             })
                             ->columnSpan(1),
                         Forms\Components\Select::make('billing_cycle')
-                            ->label('Billing Cycle')
+                            ->label(__('subscription-system-admin::plan.fields.billing_cycle'))
                             ->options([
-                                NtechBillingCycle::DAILY->value => NtechBillingCycle::DAILY->name,
-                                NtechBillingCycle::WEEKLY->value => NtechBillingCycle::WEEKLY->name,
-                                NtechBillingCycle::MONTHLY->value => NtechBillingCycle::MONTHLY->name,
-                                NtechBillingCycle::YEARLY->value => NtechBillingCycle::YEARLY->name,
+                                NtechBillingCycle::DAILY->value => __('subscription-system-admin::billing_cycle.daily'),
+                                NtechBillingCycle::WEEKLY->value => __('subscription-system-admin::billing_cycle.weekly'),
+                                NtechBillingCycle::MONTHLY->value => __('subscription-system-admin::billing_cycle.monthly'),
+                                NtechBillingCycle::YEARLY->value => __('subscription-system-admin::billing_cycle.yearly'),
                             ])
                             ->required()
                             ->columnSpan(1),
-                        // Forms\Components\Toggle::make('is_active')
-                        //     ->label('Active')
-                        //     ->default(true)
-                        //     ->columnSpan(1),
 
                         // Feature Overrides
                         Forms\Components\Repeater::make('planPriceFeatureOverrides')
-                            ->label('Feature Overrides')
+                            ->label(__('subscription-system-admin::plan.sections.feature_overrides'))
                             ->relationship()
                             ->schema([
                                 Forms\Components\Select::make('feature_id')
-                                    ->label('Feature')
+                                    ->label(__('subscription-system-admin::feature.singular'))
                                     ->options(function () {
                                         $featureClass = ConfigHelper::getConfigClass('feature', \NtechServices\SubscriptionSystem\Models\Feature::class);
                                         return $featureClass::pluck('name', 'id')->toArray();
@@ -254,17 +251,17 @@ class NtechPlanResource extends Resource
                                     ->preload()
                                     ->columnSpan(1),
                                 Forms\Components\TextInput::make('value')
-                                    ->label('Override Value')
+                                    ->label(__('subscription-system-admin::plan.fields.override_value'))
                                     ->required()
-                                    ->helperText('This will override the plan default value')
+                                    ->helperText(__('subscription-system-admin::plan.help.override_value'))
                                     ->columnSpan(1),
                                 Forms\Components\Toggle::make('is_soft_limit')
-                                    ->label('Soft Limit')
+                                    ->label(__('subscription-system-admin::plan.fields.soft_limit'))
                                     ->default(false)
                                     ->live()
                                     ->columnSpanFull(),
                                 Forms\Components\TextInput::make('overage_price')
-                                    ->label('Overage Price')
+                                    ->label(__('subscription-system-admin::plan.fields.overage_price'))
                                     ->numeric()
                                     ->step(0.0001)
                                     ->visible(fn ($get) => $get('is_soft_limit'))
@@ -277,13 +274,13 @@ class NtechPlanResource extends Resource
                                     })
                                     ->columnSpan(1),
                                 Forms\Components\Select::make('overage_currency')
-                                    ->label('Overage Currency')
+                                    ->label(__('subscription-system-admin::plan.fields.overage_currency'))
                                     ->visible(fn ($get) => $get('is_soft_limit'))
                                     ->options([
-                                        'USD' => 'USD ($)',
-                                        'EUR' => 'EUR (€)',
-                                        'GBP' => 'GBP (£)',
-                                        'CAD' => 'CAD (C$)',
+                                        'USD' => __('subscription-system-admin::currency.usd'),
+                                        'EUR' => __('subscription-system-admin::currency.eur'),
+                                        'GBP' => __('subscription-system-admin::currency.gbp'),
+                                        'CAD' => __('subscription-system-admin::currency.cad'),
                                     ])
                                     ->searchable()
                                     ->columnSpan(1),
@@ -293,16 +290,16 @@ class NtechPlanResource extends Resource
                             ->collapsed()
                             ->itemLabel(function($state){
                                 if (!isset($state['feature_id'])) {
-                                    return 'New Override';
+                                    return __('subscription-system-admin::plan.repeater.new_override');
                                 }
                                 
                                 $featureClass = ConfigHelper::getConfigClass('feature', \NtechServices\SubscriptionSystem\Models\Feature::class);
                                 $featureName = $featureClass::find($state['feature_id'])?->name;
                                 $value = $state['value'] ?? '';
                                 
-                                return $featureName ? "{$featureName}: {$value}" : 'New Override';
+                                return $featureName ? "{$featureName}: {$value}" : __('subscription-system-admin::plan.repeater.new_override');
                             })
-                            ->addActionLabel('Add Feature Override')
+                            ->addActionLabel(__('subscription-system-admin::plan.actions.add_feature_override'))
                             ->reorderable(false)
                             ->columnSpanFull(),
                     ])
@@ -310,15 +307,15 @@ class NtechPlanResource extends Resource
                     ->collapsible()
                     ->itemLabel(function (array $state): ?string {
                         if (!isset($state['currency'], $state['price'])) {
-                            return 'New Price';
+                            return __('subscription-system-admin::plan.repeater.new_price');
                         }
                         
                         $overrideCount = count($state['planPriceFeatureOverrides'] ?? []);
-                        $overrideText = $overrideCount > 0 ? " ({$overrideCount} overrides)" : '';
+                        $overrideText = $overrideCount > 0 ? " (" . __('subscription-system-admin::plan.repeater.overrides_count', ['count' => $overrideCount]) . ")" : '';
                         
                         return "{$state['currency']} {$state['price']}{$overrideText}";
                     })
-                    ->addActionLabel('Add Price')
+                    ->addActionLabel(__('subscription-system-admin::plan.actions.add_price'))
                     ->reorderable()
                     ->cloneable()
                     ->columnSpanFull(),
@@ -331,31 +328,31 @@ class NtechPlanResource extends Resource
         return $table
             ->columns([
                 TextColumn::make('id')
-                    ->label('ID')
+                    ->label(__('subscription-system-admin::general.fields.id'))
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
 
                 TextColumn::make('name')
-                    ->label('Plan Name')
+                    ->label(__('subscription-system-admin::plan.fields.name'))
                     ->searchable()
                     ->sortable()
                     ->weight('bold')
                     ->color('primary'),
 
                 TextColumn::make('order')
-                    ->label('Order')
+                    ->label(__('subscription-system-admin::plan.fields.order'))
                     ->sortable()
                     ->alignment(Alignment::Center),
 
                 IconColumn::make('popular')
-                    ->label('Popular')
+                    ->label(__('subscription-system-admin::plan.fields.popular'))
                     ->boolean()
                     ->trueIcon('heroicon-o-star')
                     ->falseIcon('')
                     ->trueColor('warning'),
 
                 TextColumn::make('description')
-                    ->label('Description')
+                    ->label(__('subscription-system-admin::plan.fields.description'))
                     ->searchable()
                     ->limit(30)
                     ->tooltip(function (NtechPlan $record): ?string {
@@ -363,43 +360,43 @@ class NtechPlanResource extends Resource
                     }),
 
                 TextColumn::make('trial_value')
-                    ->label('Trial')
+                    ->label(__('subscription-system-admin::plan.fields.trial'))
                     ->formatStateUsing(function ($state, NtechPlan $record) {
-                        return $state . ' ' . strtolower($record->trial_cycle);
+                        return $state . ' ' . __('subscription-system-admin::billing_cycle.' . strtolower($record->trial_cycle));
                     })
                     ->alignment(Alignment::Center),
 
                 TextColumn::make('features_count')
-                    ->label('Features')
+                    ->label(__('subscription-system-admin::feature.plural'))
                     ->counts('features')
                     ->badge()
                     ->color('info')
                     ->alignment(Alignment::Center),
 
                 TextColumn::make('plan_prices_count')
-                    ->label('Prices')
+                    ->label(__('subscription-system-admin::plan.table.prices'))
                     ->counts('planPrices')
                     ->badge()
                     ->color('success')
                     ->alignment(Alignment::Center),
 
                 TextColumn::make('created_at')
-                    ->label('Created')
+                    ->label(__('subscription-system-admin::general.fields.created_at'))
                     ->dateTime('d/m/Y H:i')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 TernaryFilter::make('popular')
-                    ->label('Popular Plans'),
+                    ->label(__('subscription-system-admin::plan.filters.popular')),
 
                 SelectFilter::make('trial_cycle')
-                    ->label('Trial Cycle')
+                    ->label(__('subscription-system-admin::plan.filters.trial_cycle'))
                     ->options([
-                        NtechBillingCycle::DAILY->value => NtechBillingCycle::DAILY->name,
-                        NtechBillingCycle::WEEKLY->value => NtechBillingCycle::WEEKLY->name,
-                        NtechBillingCycle::MONTHLY->value => NtechBillingCycle::MONTHLY->name,
-                        NtechBillingCycle::YEARLY->value => NtechBillingCycle::YEARLY->name,
+                        NtechBillingCycle::DAILY->value => __('subscription-system-admin::billing_cycle.daily'),
+                        NtechBillingCycle::WEEKLY->value => __('subscription-system-admin::billing_cycle.weekly'),
+                        NtechBillingCycle::MONTHLY->value => __('subscription-system-admin::billing_cycle.monthly'),
+                        NtechBillingCycle::YEARLY->value => __('subscription-system-admin::billing_cycle.yearly'),
                     ]),
             ])
             ->actions([
@@ -408,7 +405,7 @@ class NtechPlanResource extends Resource
                     EditAction::make(),
 
                     Action::make('edit_features')
-                        ->label('Manage Features')
+                        ->label(__('subscription-system-admin::plan.actions.manage_features'))
                         ->icon('heroicon-o-adjustments-horizontal')
                         ->color('info')
                         ->url(fn ($record) => route('filament.admin.resources.ntech-plans.edit', [
@@ -417,7 +414,7 @@ class NtechPlanResource extends Resource
                         ])),
 
                     Action::make('edit_prices')
-                        ->label('Manage Prices')
+                        ->label(__('subscription-system-admin::plan.actions.manage_prices'))
                         ->icon('heroicon-o-currency-dollar')
                         ->color('warning')
                         ->url(fn ($record) => route('filament.admin.resources.ntech-plans.edit', [
@@ -426,26 +423,29 @@ class NtechPlanResource extends Resource
                         ])),
 
                     Action::make('toggle_popular')
-                        ->label(fn (NtechPlan $record) => $record->popular ? 'Remove Popular' : 'Mark as Popular')
+                        ->label(fn (NtechPlan $record) => $record->popular ? __('subscription-system-admin::plan.actions.remove_popular') : __('subscription-system-admin::plan.actions.mark_popular'))
                         ->icon(fn (NtechPlan $record) => $record->popular ? 'heroicon-o-star' : 'heroicon-s-star')
                         ->color('warning')
                         ->action(function (NtechPlan $record) {
                             $record->update(['popular' => !$record->popular]);
                             
                             \Filament\Notifications\Notification::make()
-                                ->title($record->popular ? 'Plan marked as popular' : 'Plan unmarked as popular')
+                                ->title($record->popular ? __('subscription-system-admin::plan.notifications.marked_popular') : __('subscription-system-admin::plan.notifications.unmarked_popular'))
                                 ->success()
-                                ->body("Plan '{$record->name}' has been " . ($record->popular ? 'marked as popular' : 'unmarked as popular') . ".")
+                                ->body(__('subscription-system-admin::plan.notifications.plan_status_changed', [
+                                    'name' => $record->name,
+                                    'status' => $record->popular ? __('subscription-system-admin::plan.notifications.marked_popular') : __('subscription-system-admin::plan.notifications.unmarked_popular')
+                                ]))
                                 ->send();
                         }),
 
                     Action::make('duplicate')
-                        ->label('Duplicate Plan')
+                        ->label(__('subscription-system-admin::plan.actions.duplicate'))
                         ->icon('heroicon-o-document-duplicate')
                         ->color('info')
                         ->action(function (NtechPlan $record) {
                             $newPlan = $record->replicate(['popular']);
-                            $newPlan->name = $record->name . ' (Copy)';
+                            $newPlan->name = $record->name . ' ' . __('subscription-system-admin::general.copy_suffix');
                             $newPlan->popular = false;
                             $newPlan->save();
 
@@ -460,28 +460,28 @@ class NtechPlanResource extends Resource
                             }
                             
                             \Filament\Notifications\Notification::make()
-                                ->title('Plan duplicated')
+                                ->title(__('subscription-system-admin::plan.notifications.duplicated'))
                                 ->success()
-                                ->body("New plan '{$newPlan->name}' has been created.")
+                                ->body(__('subscription-system-admin::plan.notifications.plan_duplicated', ['name' => $newPlan->name]))
                                 ->send();
                         }),
 
                     DeleteAction::make(),
                 ])
-                ->label('Actions')
+                ->label(__('subscription-system-admin::general.actions'))
                 ->color('primary')
                 ->icon('heroicon-m-ellipsis-vertical')
                 ->button(),
             ])
             ->headerActions([
                 CreateAction::make()
-                    ->label('New Plan')
+                    ->label(__('subscription-system-admin::plan.actions.new_plan'))
                     ->icon('heroicon-o-plus'),
             ])
             ->groupedBulkActions([
                 BulkActionGroup::make([
                     BulkAction::make('mark_popular')
-                        ->label('Mark as Popular')
+                        ->label(__('subscription-system-admin::plan.bulk_actions.mark_popular'))
                         ->icon('heroicon-o-star')
                         ->color('warning')
                         ->action(fn ($records) => 
@@ -492,7 +492,7 @@ class NtechPlanResource extends Resource
                         ->deselectRecordsAfterCompletion(),
                     
                     BulkAction::make('unmark_popular')
-                        ->label('Remove Popular')
+                        ->label(__('subscription-system-admin::plan.bulk_actions.unmark_popular'))
                         ->icon('heroicon-o-star')
                         ->color('gray')
                         ->action(fn ($records) => 
@@ -507,7 +507,7 @@ class NtechPlanResource extends Resource
             ])
             ->emptyStateActions([
                 CreateAction::make()
-                    ->label('Create your first plan')
+                    ->label(__('subscription-system-admin::plan.empty_state.create_first'))
                     ->icon('heroicon-o-plus'),
             ])
             ->defaultSort('order', 'asc')
@@ -548,10 +548,10 @@ class NtechPlanResource extends Resource
     public static function getGlobalSearchResultDetails(\Illuminate\Database\Eloquent\Model $record): array
     {
         return [
-            'Features' => $record->features()->count(),
-            'Prices' => $record->planPrices()->count(),
-            'Trial' => $record->trial_value . ' ' . strtolower($record->trial_cycle),
-            'Popular' => $record->popular ? 'Yes' : 'No',
+            __('subscription-system-admin::feature.plural') => $record->features()->count(),
+            __('subscription-system-admin::plan.table.prices') => $record->planPrices()->count(),
+            __('subscription-system-admin::plan.fields.trial') => $record->trial_value . ' ' . __('subscription-system-admin::billing_cycle.' . strtolower($record->trial_cycle)),
+            __('subscription-system-admin::plan.fields.popular') => $record->popular ? __('subscription-system-admin::general.yes') : __('subscription-system-admin::general.no'),
         ];
     }
 
