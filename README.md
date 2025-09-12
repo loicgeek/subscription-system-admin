@@ -5,6 +5,10 @@
 [![GitHub Code Style Action Status](https://img.shields.io/github/actions/workflow/status/ntech-services/subscription-system-admin/fix-php-code-style-issues.yml?branch=main&label=code%20style&style=flat-square)](https://github.com/ntech-services/subscription-system-admin/actions?query=workflow%3A"Fix+PHP+code+styling"+branch%3Amain)
 [![Total Downloads](https://img.shields.io/packagist/dt/ntech-services/subscription-system-admin.svg?style=flat-square)](https://packagist.org/packages/ntech-services/subscription-system-admin)
 
+<div align="center">
+     <img src="logo.svg" alt="Subscription System Admin" width="120" height="120">
+     <h1>Subscription System Admin</h1>
+   </div>
 A comprehensive Laravel package that provides a complete subscription system administration interface for Filament admin panels. This package allows you to manage subscriptions, plans, features, usage tracking, and coupons with a beautiful and intuitive admin interface.
 
 Perfect for SaaS applications, membership sites, or any Laravel project that needs subscription management capabilities. The package integrates seamlessly with Filament's admin panel and provides both API and web routes for maximum flexibility.
