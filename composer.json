@@ -1,11 +1,17 @@
 {
-    "version": "0.0.1",
     "name": "ntech-services/subscription-system-admin",
-    "description": "This is my package subscription-system-admin",
+    "description": "A comprehensive Laravel package that provides a complete subscription system administration interface for Filament admin panels.",
     "keywords": [
-        "loicgeek",
         "laravel",
-        "subscription-system-admin"
+        "filament", 
+        "subscription",
+        "admin",
+        "saas",
+        "billing",
+        "plans",
+        "features",
+        "coupons",
+        "ntech-services"
     ],
     "homepage": "https://github.com/loicgeek/subscription-system-admin",
     "support": {
@@ -15,8 +21,9 @@
     "license": "MIT",
     "authors": [
         {
-            "name": "loic",
+            "name": "Loic NGOU",
             "email": "loic.ngou98@gmail.com",
+            "homepage": "https://github.com/loicgeek",
             "role": "Developer"
         }
     ],
@@ -24,19 +31,19 @@
         "php": "^8.1",
         "filament/filament": "^4.0",
         "spatie/laravel-package-tools": "^1.15.0",
-        "ntech-services/subscription-system": "0.0.14"
+        "ntech-services/subscription-system": "^0.0.14"
     },
     "require-dev": {
-        "larastan/larastan": "*",
-        "laravel/pint": "*",
-        "orchestra/testbench": "*",
-        "pestphp/pest": "*",
-        "pestphp/pest-plugin-arch": "*",
-        "pestphp/pest-plugin-laravel": "*",
-        "phpstan/extension-installer": "*",
-        "phpstan/phpstan-deprecation-rules": "*",
-        "phpstan/phpstan-phpunit": "*",
-        "spatie/laravel-ray": "*"
+        "larastan/larastan": "^2.0",
+        "laravel/pint": "^1.0",
+        "orchestra/testbench": "^8.0|^9.0",
+        "pestphp/pest": "^2.0",
+        "pestphp/pest-plugin-arch": "^2.0",
+        "pestphp/pest-plugin-laravel": "^2.0",
+        "phpstan/extension-installer": "^1.0",
+        "phpstan/phpstan-deprecation-rules": "^1.0",
+        "phpstan/phpstan-phpunit": "^1.0",
+        "spatie/laravel-ray": "^1.26"
     },
     "autoload": {
         "psr-4": {
@@ -66,8 +73,7 @@
     "extra": {
         "laravel": {
             "providers": [
-                "NtechServices\\SubscriptionSystemAdmin\\SubscriptionSystemAdminServiceProvider",
-            "NtechServices\\SubscriptionSystem\\SubscriptionServiceProvider"
+                "NtechServices\\SubscriptionSystemAdmin\\SubscriptionSystemAdminServiceProvider"
             ],
             "aliases": {
                 "SubscriptionSystemAdmin": "NtechServices\\SubscriptionSystemAdmin\\Facades\\SubscriptionSystemAdmin"
