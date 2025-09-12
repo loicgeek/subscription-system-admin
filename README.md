@@ -9,6 +9,28 @@ A comprehensive Laravel package that provides a complete subscription system adm
 
 Perfect for SaaS applications, membership sites, or any Laravel project that needs subscription management capabilities. The package integrates seamlessly with Filament's admin panel and provides both API and web routes for maximum flexibility.
 
+## Screenshots
+
+### Dashboard Overview
+![Subscription Dashboard](screenshots/dashboard-overview.jpeg)
+*Main dashboard showing subscription metrics and key statistics*
+
+### Plan Management
+![Plan Management Interface](screenshots/plan-management.jpeg)
+*Intuitive interface for creating and managing subscription plans*
+
+### Feature Configuration
+![Feature Configuration](screenshots/feature-configuration.jpeg)
+*Configure plan features, limits, and pricing overrides*
+
+### Subscription Details
+![Subscription Details](screenshots/subscription-details.jpeg)
+*Detailed view of individual subscriptions with usage tracking*
+
+### Coupon Management
+![Coupon System](screenshots/coupon-management.jpeg)
+*Create and manage discount coupons and promotional codes*
+
 ## Features
 
 - 📊 **Subscription Management** - Complete CRUD operations for subscriptions
@@ -145,14 +167,22 @@ php artisan vendor:publish --tag="subscription-system-admin-lang"
 
 ## Usage
 
-### Basic Usage
+### Plugin Configuration
+
+The primary way to use this package is through the Filament plugin configuration:
 
 ```php
-use NtechServices\SubscriptionSystemAdmin\SubscriptionSystemAdmin;
+use NtechServices\SubscriptionSystemAdmin\SubscriptionSystemAdminPlugin;
 
-$subscriptionSystemAdmin = new SubscriptionSystemAdmin();
-echo $subscriptionSystemAdmin->echoPhrase('Hello, NtechServices!');
+// In your AdminPanelProvider
+SubscriptionSystemAdminPlugin::make()
+    ->subscriptionFeatureUsage(true)  // Enable/disable feature usage tracking
+    ->coupons(true)                   // Enable/disable coupon system
 ```
+
+### API Integration
+
+The package automatically registers API routes that you can consume in your frontend applications or mobile apps. All endpoints return structured JSON responses with consistent formatting.
 
 ### Plugin Configuration Options
 
@@ -168,17 +198,106 @@ SubscriptionSystemAdminPlugin::make()
 
 ### API Routes
 
-When API routes are enabled, you can access the subscription system via REST API:
+When API routes are enabled, you can access the subscription system via REST API. The package provides the following endpoints:
 
-- `GET /api/ntech-subscription/subscriptions` - List all subscriptions
-- `POST /api/ntech-subscription/subscriptions` - Create a new subscription
-- `GET /api/ntech-subscription/subscriptions/{id}` - Get a specific subscription
-- `PUT /api/ntech-subscription/subscriptions/{id}` - Update a subscription
-- `DELETE /api/ntech-subscription/subscriptions/{id}` - Delete a subscription
+#### Available Routes
+
+- `GET /plans` - List all subscription plans ([PlanController::class, 'index'])
+- `GET /plans/{plan}` - Get a specific plan ([PlanController::class, 'show'])  
+- `GET /plans/{plan}/features` - Get plan features ([PlanController::class, 'features'])
+
+#### Full URLs (with default prefix)
+
+- `GET /api/ntech-subscription/plans`
+- `GET /api/ntech-subscription/plans/{plan}`
+- `GET /api/ntech-subscription/plans/{plan}/features`
+
+#### API Response Structure
+
+**List Plans Response (`GET /plans`):**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": 1,
+      "name": "Basic Plan",
+      "slug": "basic-plan",
+      "description": "Perfect for getting started",
+      "order": 1,
+      "popular": false,
+      "trial_value": 7,
+      "trial_cycle": "days",
+      "features": [
+        {
+          "id": 1,
+          "name": "API Calls",
+          "slug": "api-calls",
+          "description": "Monthly API call limit",
+          "value": "1000",
+          "is_soft_limit": true,
+          "overage_price": "0.01",
+          "overage_currency": "USD"
+        }
+      ],
+      "prices": [
+        {
+          "id": 1,
+          "price": "9.99",
+          "currency": "USD",
+          "billing_cycle": "monthly",
+          "is_active": true,
+          "feature_overrides": []
+        }
+      ]
+    }
+  ]
+}
+```
+
+**Plan Features with Overrides (`GET /plans/{plan}/features`):**
+This endpoint provides a merged view of plan features with price-specific overrides applied, showing the final values that would be used for each billing cycle.
+
+#### Authentication & Middleware
+
+API routes use the middleware defined in your configuration (default: `['api']`). For production use, you should add authentication middleware:
+
+```php
+// In your config file
+'api_middleware' => ['api', 'auth:sanctum'], // or 'auth:api'
+```
 
 ### Web Routes
 
 When web routes are enabled, you can access the subscription system via web interface at the configured prefix.
+
+## Advanced Usage & Custom Queries
+
+This package builds on top of the core [ntech-services/subscription-system](https://packagist.org/packages/ntech-services/subscription-system) package. For advanced usage, custom queries, and direct model manipulation, please refer to the underlying package documentation.
+
+### Custom Model Queries
+
+You can directly use the underlying models for custom queries:
+
+```php
+use NtechServices\SubscriptionSystem\Models\Plan;
+use NtechServices\SubscriptionSystem\Models\Feature;
+use NtechServices\SubscriptionSystem\Models\Subscription;
+
+// Get all active plans with their features
+$activePlans = Plan::with(['features', 'planPrices' => function($query) {
+    $query->where('is_active', true);
+}])->get();
+
+// Get subscription usage for a specific feature
+$usage = Subscription::with(['usages' => function($query) use ($featureId) {
+    $query->where('feature_id', $featureId);
+}])->find($subscriptionId);
+```
+
+### Extending Functionality
+
+For comprehensive documentation on models, relationships, and advanced queries, visit: https://packagist.org/packages/ntech-services/subscription-system
 
 ## Managing Subscriptions
 
